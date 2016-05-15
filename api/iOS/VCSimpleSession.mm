@@ -478,7 +478,7 @@ namespace videocore { namespace simpleApi {
     _useInterfaceOrientation = useInterfaceOrientation;
     self.micGain = 1.f;
     self.audioChannelCount = 2;
-    self.audioSampleRate = 44100.;
+    self.audioSampleRate = 22050.;
     self.useAdaptiveBitrate = NO;
     self.aspectMode = aspectMode;
 
