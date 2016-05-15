@@ -59,6 +59,7 @@
 
 
 static const int kMinVideoBitrate = 32000;
+static const int kMaxBufferedDuration = 15;
 
 namespace videocore { namespace simpleApi {
 
@@ -537,7 +538,7 @@ namespace videocore { namespace simpleApi {
                           new videocore::RTMPSession ( uri.str(),
                                                       [=](videocore::RTMPSession& session,
                                                           ClientState_t state) {
-
+                                                          
                                                           DLog("ClientState: %d\n", state);
 
                                                           switch(state) {
@@ -627,6 +628,14 @@ namespace videocore { namespace simpleApi {
                                                           video->setBitrate(std::max(std::min(int((videoBr / 32000 + vector )) * 32000, bSelf->_bpsCeiling), kMinVideoBitrate) );
                                                       }
                                                       DLog("\n(%f) AudioBR: %d VideoBR: %d (%f)\n", vector, audio->bitrate(), video->bitrate(), predicted);
+                                                      
+                                                      videoBr = video->bitrate();
+                                                      
+                                                      auto video = std::dynamic_pointer_cast<videocore::RTMPSession>( bSelf->m_outputSession );
+                                                      
+                                                      // /8 - bitrate to byterate conversion
+                                                      video->setMaxSendBufferSize(kMaxBufferedDuration * videoBr / 8);
+                                                      
                                                   } /* if(vector != 0) */
 
                                               } /* if(video && audio && m_adaptiveBREnabled) */

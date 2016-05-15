@@ -50,6 +50,7 @@ namespace videocore
     , m_outChunkSize(128)
     , m_inChunkSize(128)
     , m_bufferSize(0)
+    , m_maxSendBufferSize(kMaxSendbufferSize)
     , m_streamId(0)
     , m_numberOfInvokes(0)
     , m_state(kClientStateNone)
@@ -228,7 +229,7 @@ namespace videocore
             if(isKeyframe) {
                 m_sentKeyframe = packetTime;
             }
-            if(m_bufferSize > kMaxSendbufferSize && isKeyframe) {
+            if(m_bufferSize > this->m_maxSendBufferSize && isKeyframe) {
                 m_clearing = true;
             }
             m_networkQueue.enqueue([=]() {
@@ -253,6 +254,11 @@ namespace videocore
 #endif
                     }
                 }
+                
+                if (this->m_clearing) {
+                    printf("discarded %lu bytes\n", size);
+                }
+                
                 this->increaseBuffer(-int64_t(size));
             });
         }
