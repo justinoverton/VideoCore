@@ -40,7 +40,7 @@
 
 namespace videocore
 {
-    static const size_t kMaxSendbufferSize = 10 * 1024 * 1024; // 10 MB
+    static const size_t kMaxSendbufferSize = 1024 * 1024 / 2; // was 10 MB - 5 minutes, now - 15 seconds
     
     RTMPSession::RTMPSession(std::string uri, RTMPSessionStateCallback callback)
     : m_streamOutRemainder(65536)
