@@ -49,10 +49,10 @@ namespace videocore { namespace iOS {
         /*! Destructor */
         virtual ~CameraSource();
         
-
+        
         /*!
          *  Setup camera properties
-         *  
+         *
          *  \param session  Capture session to use
          *  \param fps      Optional parameter to set the output frames per second.
          *  \param useFront Start with the front-facing camera
@@ -60,13 +60,13 @@ namespace videocore { namespace iOS {
          *  \param callbackBlock block to be called after everything is set
          */
         void setup(int fps, bool useFront, bool useInterfaceOrientation);
-
+        
         
         /*!
          *  Toggle the camera between front and back-facing cameras.
          */
         void toggleCamera();
-
+        
         /*!
          * If the orientation is locked, we ignore device / interface
          * orientation changes.
@@ -87,7 +87,7 @@ namespace videocore { namespace iOS {
          *  Attempt to turn the torch mode on or off.
          *
          *  \param torchOn  Bool indicating whether the torch should be on or off.
-         *  
+         *
          *  \return the actual state of the torch.
          */
         bool setTorch(bool torchOn);
@@ -108,57 +108,65 @@ namespace videocore { namespace iOS {
         
         
         /*!
-         *  Method to create and setup capture input
-         */
-        void setupCaptureInput();
-        
-        /*!
-         *  Method to create and setup capture output
-         */
-        void setupCaptureOutput();
-        
-        /*!
-         *  Method to create and setup capture device
-         */
-        void setupCaptureDevice();
-        
-        /*!
-         *  Method to create and setup capture output delegate
-         */
-        void setupCaptureOutputDelegate();
-        
-        /*!
          *  Returns media type for the source
          */
         NSString *mediaType();
-
+        
         
     public:
         
         /*! Used by Objective-C Device/Interface Orientation Notifications */
         void reorientCamera();
         void bufferCaptured(CMSampleBufferRef sampleBuffer);
+        bool isConnectionForCurrentInput(AVCaptureConnection *connection);
         
     protected:
+        /*!
+         *  Method to create and setup capture session connections from inputs to outputs
+         */
+        void setupCaptureSessionConnections();
         
-        /*! 
+        /*!
          * Get a camera with a specified position
          *
          * \param position The position to search for.
-         * 
+         *
          * \return the camera device, if found.
          */
         AVCaptureDevice *cameraWithPosition(int position);
-
+        
         /*!
-         * Get video orientation for device orientation
+         * Get a camera device for currently active input.
+         */
+        AVCaptureDevice *captureDevice();
+        
+        /*!
+         *  Get video orientation for device orientation
          *
-         * \param orientation Device or interface orientation
+         *  \param orientation Device or interface orientation
          *
-         * \return Video orientation
+         *  \return Video orientation
          */
         AVCaptureVideoOrientation videoOrientationForInterfaceOrientation(long orientation);
         
+        /*!
+         *  Sets up and adds camera capture input for position.
+         *
+         *  \param position The position of camera.
+         *
+         *  \return Capture input.
+         */
+        AVCaptureDeviceInput *setupCaptureInputWithCameraPosition(int position);
+        
+        /*!
+         *  Removes capture outputs and inputs from session
+         */
+        void removeSessionConnections();
+        
+        /*!
+         * Sets up the camera capture output.
+         */
+        void setupCaptureOutput();
         
         /*!
          *  Property for capture output delegate
@@ -175,6 +183,14 @@ namespace videocore { namespace iOS {
          */
         void stopListeningToOrientationChange();
         
+        /*!
+         *  Returns capture input for camera.
+         *
+         *  \param position The position of camera.
+         *
+         *  \return Capture input.
+         */
+        AVCaptureDeviceInput *captureInputForCameraPosition(int position);
         
         /*!
          *  Gets current capture device position
@@ -194,6 +210,13 @@ namespace videocore { namespace iOS {
         bool m_useInterfaceOrientation;
         bool m_orientationLocked;
         bool m_isFront;
+        
+        /*!
+         *  Property for input array.
+         */
+        NSArray *m_inputs;
+        NSArray *inputs();
+        void setInputs(NSArray *inputs);
     };
     
 }

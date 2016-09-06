@@ -43,16 +43,16 @@ Pod::Spec.new do |s|
   # separate out the source files for OS X vs. iOS
   #s.osx.deployment_target = '10.7'
   
-  s.subspec 'Swift' do |swift|
-      swift.public_header_files = 'api/**/*.h'
-      swift.source_files        = [ 'mixers/**/*.h*', 'mixers/**/*.cpp', 'mixers/**/*.m*',
-                              'rtmp/**/*.h*', 'rtmp/**/*.cpp', 'rtmp/**/*.m*',
-                              'sources/**/*.h*', 'sources/**/*.cpp', 'sources/**/*.m*',
-                              'stream/**/*.h*', 'stream/**/*.cpp', 'stream/**/*.m*',
-                              'system/**/*.h*', 'system/**/*.cpp', 'system/**/*.m*',
-                              'transforms/**/*.h*', 'transforms/**/*.cpp', 'transforms/**/*.m*',
-                              'api/**/*.h*', 'api/**/*.m*',
-                              'filters/**/*.cpp', 'filters/**/*.h*' ]
-      swift.ios.deployment_target = '8.0'
-    end
+  # s.subspec 'Swift' do |swift|
+  #     swift.public_header_files = 'api/**/*.h'
+  #     swift.source_files        = [ 'mixers/**/*.h*', 'mixers/**/*.cpp', 'mixers/**/*.m*',
+  #                             'rtmp/**/*.h*', 'rtmp/**/*.cpp', 'rtmp/**/*.m*',
+  #                             'sources/**/*.h*', 'sources/**/*.cpp', 'sources/**/*.m*',
+  #                             'stream/**/*.h*', 'stream/**/*.cpp', 'stream/**/*.m*',
+  #                             'system/**/*.h*', 'system/**/*.cpp', 'system/**/*.m*',
+  #                             'transforms/**/*.h*', 'transforms/**/*.cpp', 'transforms/**/*.m*',
+  #                             'api/**/*.h*', 'api/**/*.m*',
+  #                             'filters/**/*.cpp', 'filters/**/*.h*' ]
+  #     swift.ios.deployment_target = '8.0'
+  #   end
 end

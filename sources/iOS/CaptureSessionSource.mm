@@ -32,7 +32,7 @@
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 namespace videocore { namespace iOS {
-    dispatch_queue_t CaptureSessionSource::dispatchQueue() {
+    dispatch_queue_t CaptureSessionSource::sharedDispatchQueue() {
         static dispatch_queue_t queue = nil;
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
@@ -42,7 +42,7 @@ namespace videocore { namespace iOS {
         return queue;
     }
     
-    AVCaptureSession *CaptureSessionSource::captureSession() {
+    AVCaptureSession *CaptureSessionSource::sharedCaptureSession() {
         static AVCaptureSession *session = nil;
         static dispatch_once_t onceToken;
         dispatch_once(&onceToken, ^{
@@ -58,7 +58,6 @@ namespace videocore { namespace iOS {
     m_captureSession(nil),
     m_captureInput(nil),
     m_captureOutput(nil),
-    m_captureDevice(nil),
     m_captureOutputDelegate(nil)
     {}
         
@@ -67,7 +66,6 @@ namespace videocore { namespace iOS {
         setCaptureSession(nil);
         setCaptureInput(nil);
         setCaptureOutput(nil);
-        setCaptureDevice(nil);
         setCaptureOutputDelegate(nil);
     }
         
@@ -77,21 +75,19 @@ namespace videocore { namespace iOS {
     }
         
     void CaptureSessionSource::setup() {
-        setCaptureSession(captureSession());
+        AVCaptureSession *session = sharedCaptureSession();
+        setCaptureSession(session);
         
-        setupCaptureDevice();
-        setupCaptureInput();
-        setupCaptureOutput();
-        setupCaptureOutputDelegate();
+        setupCaptureSessionConnections();
         
-        [m_captureSession startRunning];
+        [session startRunning];
     }
     
     NSArray *CaptureSessionSource::getCaptureDevices() {
         NSMutableArray *devices = [NSMutableArray array];
         
         for(AVCaptureDevice *device in [AVCaptureDevice devices]) {
-            if([device hasMediaType:this->mediaType()]) {
+            if([device hasMediaType:mediaType()]) {
                 [devices addObject:device];
             }
         }
@@ -111,20 +107,32 @@ namespace videocore { namespace iOS {
         }
     }
 
+    id CaptureSessionSource::captureInput() {
+        return m_captureInput;
+    }
+    
     void CaptureSessionSource::setCaptureInput(id value) {
         setValueForField(&m_captureInput, value);
+    }
+    
+    id CaptureSessionSource::captureOutput() {
+        return m_captureOutput;
     }
     
     void CaptureSessionSource::setCaptureOutput(id value) {
         setValueForField(&m_captureOutput, value);
     }
     
-    void CaptureSessionSource::setCaptureDevice(id value) {
-        setValueForField(&m_captureDevice, value);
+    id CaptureSessionSource::captureOutputDelegate() {
+        return m_captureOutputDelegate;
     }
     
     void CaptureSessionSource::setCaptureOutputDelegate(id value) {
         setValueForField(&m_captureOutputDelegate, value);
+    }
+    
+    AVCaptureSession *CaptureSessionSource::captureSession() {
+        return m_captureSession;
     }
     
     void CaptureSessionSource::setCaptureSession(AVCaptureSession *session) {
@@ -137,7 +145,7 @@ namespace videocore { namespace iOS {
     
     bool CaptureSessionSource::addCaptureInput(AVCaptureInput *input) {
         __block bool result = NO;
-        [m_captureSession configureWithBlock:^(AVCaptureSession *session) {
+        [captureSession() configureWithBlock:^(AVCaptureSession *session) {
             result = [session canAddInput:input];
             if (result) {
                 [session addInput:input];
@@ -148,32 +156,17 @@ namespace videocore { namespace iOS {
     }
     
     void CaptureSessionSource::removeCaptureInput(AVCaptureInput *input) {
-        [m_captureSession configureWithBlock:^(AVCaptureSession *session) {
+        [captureSession() configureWithBlock:^(AVCaptureSession *session) {
             [session removeInput:input];
         }];
     }
     
-    bool CaptureSessionSource::addCaptureOutput(AVCaptureOutput *output) {
-        __block bool result = NO;
-        [m_captureSession configureWithBlock:^(AVCaptureSession *session) {
-            result = [session canAddOutput:output];
-            if (result) {
-                [session addOutput:output];
-            }
-        }];
-        
-        return result;
-    }
-    
-    void CaptureSessionSource::removeCaptureOutput(AVCaptureOutput *output) {
-        [m_captureSession configureWithBlock:^(AVCaptureSession *session) {
-            [session removeOutput:output];
-        }];
-    }
-    
     void CaptureSessionSource::removeSessionConnections() {
-        removeCaptureInput(m_captureInput);
-        removeCaptureOutput(m_captureOutput);
+        removeCaptureInput(captureInput());
+        
+        [captureSession()  configureWithBlock:^(AVCaptureSession *session) {
+            [session removeOutput:captureOutput()];
+        }];
     }
 }
 }

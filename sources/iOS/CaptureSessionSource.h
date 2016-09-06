@@ -42,13 +42,13 @@ namespace videocore { namespace iOS {
          *  Returns a serial dispatch queue to be used for capture session. 
          *  All children are enforced to have the same dispatch queue.
          */
-        static dispatch_queue_t dispatchQueue();
+        static dispatch_queue_t sharedDispatchQueue();
         
         /*!
          *  Returns a capture session to be used in all children.
          *  All children are enforced to have the same capture session.
          */
-        static AVCaptureSession *captureSession();
+        static AVCaptureSession *sharedCaptureSession();
         
         /*! Constructor */
         CaptureSessionSource();
@@ -72,24 +72,9 @@ namespace videocore { namespace iOS {
         
     protected:
         /*!
-         *  Method to create and setup capture input
+         *  Method to create and setup capture session connections from inputs to outputs
          */
-        virtual void setupCaptureInput() = 0;
-        
-        /*!
-         *  Method to create and setup capture output
-         */
-        virtual void setupCaptureOutput() = 0;
-        
-        /*!
-         *  Method to create and setup capture device
-         */
-        virtual void setupCaptureDevice() = 0;
-        
-        /*!
-         *  Method to create and setup capture output delegate
-         */
-        virtual void setupCaptureOutputDelegate() = 0;
+        virtual void setupCaptureSessionConnections() = 0;
         
         /*!
          *  Returns media type for the source
@@ -118,22 +103,6 @@ namespace videocore { namespace iOS {
         void removeCaptureInput(AVCaptureInput *input);
         
         /*!
-         *  Adds capture output.
-         *
-         *  \param output   Output to add
-         *
-         *  \return         Success. 'true', if output was added.
-         */
-        bool addCaptureOutput(AVCaptureOutput *output);
-        
-        /*!
-         *  Removes capture output.
-         *
-         *  \param output    Input to remove
-         */
-        void removeCaptureOutput(AVCaptureOutput *output);
-
-        /*!
          *  Universal setter for ObjC objects
          */
         void setValueForField(id *field, id value);
@@ -142,24 +111,21 @@ namespace videocore { namespace iOS {
          *  Property for capture input
          */
         id m_captureInput;
+        virtual id captureInput();
         virtual void setCaptureInput(id value);
         
         /*!
          *  Property for capture output
          */
         id m_captureOutput;
+        virtual id captureOutput();
         virtual void setCaptureOutput(id value);
-        
-        /*!
-         *  Property for capture device
-         */
-        id m_captureDevice;
-        virtual void setCaptureDevice(id value);
         
         /*!
          *  Property for capture output delegate
          */
         id m_captureOutputDelegate;
+        virtual id captureOutputDelegate();
         virtual void setCaptureOutputDelegate(id value);
         
         /*!
@@ -171,6 +137,7 @@ namespace videocore { namespace iOS {
          *  Property for capture session
          */
         AVCaptureSession *m_captureSession;
+        virtual AVCaptureSession *captureSession();
         virtual void setCaptureSession(AVCaptureSession *session);
         
         std::weak_ptr<IOutput> m_output;

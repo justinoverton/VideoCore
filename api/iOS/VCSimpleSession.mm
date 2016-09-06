@@ -43,7 +43,6 @@
 #       include <videocore/sources/iOS/MicSource.h>
 #       include <videocore/mixers/iOS/GLESVideoMixer.h>
 #       include <videocore/transforms/iOS/AACEncode.h>
-#       include <videocore/transforms/iOS/H264Encode.h>
 
 #   else /* OS X */
 
@@ -507,7 +506,7 @@ namespace videocore { namespace simpleApi {
     m_videoSplit.reset();
     m_aspectTransform.reset();
     m_positionTransform.reset();
-    [videocore::iOS::CaptureSessionSource::captureSession() stopRunning];
+    [videocore::iOS::CaptureSessionSource::sharedCaptureSession() stopRunning];
     m_micSource.reset();
     m_cameraSource.reset();
     m_pbOutput.reset();
@@ -808,7 +807,7 @@ namespace videocore { namespace simpleApi {
         m_videoMixer->start();
     }
     
-    [videocore::iOS::CaptureSessionSource::captureSession() startRunning];
+    [videocore::iOS::CaptureSessionSource::sharedCaptureSession() startRunning];
 }
 - (void) addEncodersAndPacketizers
 {
@@ -826,7 +825,7 @@ namespace videocore { namespace simpleApi {
                                                                            false,
                                                                            ctsOffset);
         } else {
-            m_h264Encoder =std::make_shared<videocore::iOS::H264Encode>(self.videoSize.width,
+            m_h264Encoder =std::make_shared<videocore::Apple::H264Encode>(self.videoSize.width,
                                                                         self.videoSize.height,
                                                                         self.fps,
                                                                         self.bitrate);
