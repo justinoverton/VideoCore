@@ -542,7 +542,7 @@ namespace videocore { namespace simpleApi {
 - (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
                     andStreamKey:(NSString *)streamKey
 {
-    [self startRtmpSessionWithURL:rtmpUrl andStreamKey:streamKey filePath:nil completionHandler:nil];
+    [self startRtmpSessionWithURL:rtmpUrl andStreamKey:streamKey filePath:nil];
 }
 
 - (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
