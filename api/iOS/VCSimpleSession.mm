@@ -507,6 +507,7 @@ namespace videocore { namespace simpleApi {
     m_videoSplit.reset();
     m_aspectTransform.reset();
     m_positionTransform.reset();
+    [videocore::iOS::CaptureSessionSource::captureSession() stopRunning];
     m_micSource.reset();
     m_cameraSource.reset();
     m_pbOutput.reset();
@@ -669,11 +670,6 @@ namespace videocore { namespace simpleApi {
 
     self.rtmpSessionState = VCSessionStateEnded;
 }
-- (void) getCameraPreviewLayer:(AVCaptureVideoPreviewLayer **)previewLayer {
-    if(m_cameraSource) {
-        m_cameraSource->getPreviewLayer((void**)previewLayer);
-    }
-}
 
 //Set property filter for the new enum + set dynamically the sourceFilter for the video mixer
 - (void)setFilter:(VCFilter)filterToChange {
@@ -780,24 +776,23 @@ namespace videocore { namespace simpleApi {
                                                                                 );
 
 
-        std::dynamic_pointer_cast<videocore::iOS::CameraSource>(m_cameraSource)->setupCamera(self.fps,(self.cameraState == VCCameraStateFront),self.useInterfaceOrientation,nil,^{
-            m_cameraSource->setContinuousAutofocus(true);
-            m_cameraSource->setContinuousExposure(true);
-
-            m_cameraSource->setOutput(aspectTransform);
-
-            m_videoMixer->setSourceFilter(m_cameraSource, dynamic_cast<videocore::IVideoFilter*>(m_videoMixer->filterFactory().filter("com.videocore.filters.bgra")));
-            _filter = VCFilterNormal;
-            aspectTransform->setOutput(positionTransform);
-            positionTransform->setOutput(m_videoMixer);
-            m_aspectTransform = aspectTransform;
-            m_positionTransform = positionTransform;
-
-            // Inform delegate that camera source has been added
-            if ([_delegate respondsToSelector:@selector(didAddCameraSource:)]) {
-                [_delegate didAddCameraSource:self];
-            }
-        });
+        std::dynamic_pointer_cast<videocore::iOS::CameraSource>(m_cameraSource)->setup(self.fps, (self.cameraState == VCCameraStateFront), self.useInterfaceOrientation);
+        m_cameraSource->setContinuousAutofocus(true);
+        m_cameraSource->setContinuousExposure(true);
+        
+        m_cameraSource->setOutput(aspectTransform);
+        
+        m_videoMixer->setSourceFilter(m_cameraSource, dynamic_cast<videocore::IVideoFilter*>(m_videoMixer->filterFactory().filter("com.videocore.filters.bgra")));
+        _filter = VCFilterNormal;
+        aspectTransform->setOutput(positionTransform);
+        positionTransform->setOutput(m_videoMixer);
+        m_aspectTransform = aspectTransform;
+        m_positionTransform = positionTransform;
+        
+        // Inform delegate that camera source has been added
+        if ([_delegate respondsToSelector:@selector(didAddCameraSource:)]) {
+            [_delegate didAddCameraSource:self];
+        }
     }
     {
         // Add mic source
@@ -811,8 +806,9 @@ namespace videocore { namespace simpleApi {
 
         m_audioMixer->start();
         m_videoMixer->start();
-
     }
+    
+    [videocore::iOS::CaptureSessionSource::captureSession() startRunning];
 }
 - (void) addEncodersAndPacketizers
 {

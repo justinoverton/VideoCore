@@ -66,13 +66,18 @@
     [super dealloc];
 }
 
+- (IBAction)flipCamera:(id)sender {
+    VCCameraState cameraState = _session.cameraState;
+    _session.cameraState = (VCCameraState)((cameraState + 1) % (VCCameraStateBack + 1));
+}
+
 - (IBAction)btnConnectTouch:(id)sender {
     switch(_session.rtmpSessionState) {
         case VCSessionStateNone:
         case VCSessionStatePreviewStarted:
         case VCSessionStateEnded:
         case VCSessionStateError:
-            [_session startRtmpSessionWithURL:@"rtmp://192.168.50.19/myapp" andStreamKey:@"iosstream?abc=xxx"];
+            [_session startRtmpSessionWithURL:@"rtmp://192.168.0.154:1935/videocore" andStreamKey:@"stream"];
             break;
         default:
             [_session endRtmpSession];

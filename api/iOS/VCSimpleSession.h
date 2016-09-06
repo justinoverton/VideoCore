@@ -141,8 +141,6 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 
 - (void) endRtmpSession;
 
-- (void) getCameraPreviewLayer: (AVCaptureVideoPreviewLayer**) previewLayer;
-
 /*!
  *  Note that the rect you provide should be based on your video dimensions.  The origin
  *  of the image will be the center of the image (so if you put 0,0 as its position, it will

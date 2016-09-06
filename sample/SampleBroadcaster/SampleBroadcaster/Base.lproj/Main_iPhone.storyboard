@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="8191" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="vXZ-lx-hvc">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" initialViewController="vXZ-lx-hvc">
     <dependencies>
-        <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="8154"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
@@ -45,12 +44,22 @@
                                 <rect key="frame" x="0.0" y="0.0" width="320" height="505"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                             </view>
+                            <button opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Viv-0G-hbx">
+                                <rect key="frame" x="10" y="516" width="44" height="30"/>
+                                <state key="normal" title="Flip"/>
+                                <connections>
+                                    <action selector="flipCamera:" destination="vXZ-lx-hvc" eventType="touchUpInside" id="GUw-Tl-eP2"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="sJT-7B-7CU" firstAttribute="centerY" secondItem="Viv-0G-hbx" secondAttribute="centerY" id="4Xm-UB-sd8"/>
                             <constraint firstItem="L0s-wI-daT" firstAttribute="top" secondItem="kh9-bI-dsS" secondAttribute="topMargin" id="5wT-jJ-YIW"/>
+                            <constraint firstItem="Viv-0G-hbx" firstAttribute="leading" secondItem="kh9-bI-dsS" secondAttribute="leading" id="8GG-7e-xSV"/>
                             <constraint firstItem="sJT-7B-7CU" firstAttribute="centerY" secondItem="yD4-SW-ZCa" secondAttribute="centerY" id="Bal-o4-nRG"/>
                             <constraint firstItem="sJT-7B-7CU" firstAttribute="top" secondItem="L0s-wI-daT" secondAttribute="bottom" constant="8" id="CHE-mL-vhx"/>
+                            <constraint firstItem="sJT-7B-7CU" firstAttribute="centerX" secondItem="L0s-wI-daT" secondAttribute="centerX" id="Hq1-oj-HSR"/>
                             <constraint firstAttribute="trailingMargin" secondItem="yD4-SW-ZCa" secondAttribute="trailing" id="c9c-mU-kBm"/>
                             <constraint firstAttribute="centerX" secondItem="sJT-7B-7CU" secondAttribute="centerX" id="cVT-Y5-v45"/>
                             <constraint firstItem="2fi-mo-0CV" firstAttribute="top" secondItem="sJT-7B-7CU" secondAttribute="bottom" constant="20" id="fgw-7I-k37"/>

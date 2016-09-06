@@ -37,7 +37,7 @@ Pod::Spec.new do |s|
 
   s.xcconfig            = { "HEADER_SEARCH_PATHS" => "${PODS_ROOT}/boost ${PODS_ROOT}/**" }
 
-  s.ios.deployment_target = '5.0'
+  s.ios.deployment_target = '8.0'
 
   # Before we can get OS X deployment working, we'll need to use sub-specs to
   # separate out the source files for OS X vs. iOS

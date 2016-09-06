@@ -26,10 +26,11 @@
 #define __videocore__CameraSource__
 
 #include <iostream>
-#include <videocore/sources/ISource.hpp>
+#include <videocore/sources/iOS/CaptureSessionSource.h>
 #include <videocore/transforms/IOutput.hpp>
 #include <CoreVideo/CoreVideo.h>
 #include <glm/glm.hpp>
+#import <UIKit/UIKit.h>
 
 
 namespace videocore { namespace iOS {
@@ -37,7 +38,7 @@ namespace videocore { namespace iOS {
     /*!
      *  Capture video from the device's cameras.
      */
-    class CameraSource : public ISource, public std::enable_shared_from_this<CameraSource>
+    class CameraSource : public CaptureSessionSource
     {
     public:
         
@@ -46,28 +47,19 @@ namespace videocore { namespace iOS {
         CameraSource();
         
         /*! Destructor */
-        ~CameraSource();
+        virtual ~CameraSource();
         
-        /*! ISource::setOutput */
-        void setOutput(std::shared_ptr<IOutput> output);
-        
-        /*! 
-         *  Get the AVCaptureVideoPreviewLayer associated with the camera output.
-         *
-         *  \param outAVCaputreVideoPreviewLayer a pointer to an AVCaptureVideoPreviewLayer pointer.
-         */
-        void getPreviewLayer(void** outAVCaptureVideoPreviewLayer);
 
         /*!
          *  Setup camera properties
-         *
+         *  
+         *  \param session  Capture session to use
          *  \param fps      Optional parameter to set the output frames per second.
          *  \param useFront Start with the front-facing camera
          *  \param useInterfaceOrientation whether to use interface or device orientation as reference for video capture orientation
-         *  \param sessionPreset name of the preset to use for the capture session
          *  \param callbackBlock block to be called after everything is set
          */
-        void setupCamera(int fps = 15, bool useFront = true, bool useInterfaceOrientation = false, NSString* sessionPreset = nil, void (^callbackBlock)(void) = nil);
+        void setup(int fps, bool useFront, bool useInterfaceOrientation);
 
         
         /*!
@@ -115,14 +107,39 @@ namespace videocore { namespace iOS {
         bool setContinuousExposure(bool wantsContinuous);
         
         
+        /*!
+         *  Method to create and setup capture input
+         */
+        void setupCaptureInput();
+        
+        /*!
+         *  Method to create and setup capture output
+         */
+        void setupCaptureOutput();
+        
+        /*!
+         *  Method to create and setup capture device
+         */
+        void setupCaptureDevice();
+        
+        /*!
+         *  Method to create and setup capture output delegate
+         */
+        void setupCaptureOutputDelegate();
+        
+        /*!
+         *  Returns media type for the source
+         */
+        NSString *mediaType();
+
+        
     public:
-        /*! Used by Objective-C Capture Session */
-        void bufferCaptured(CVPixelBufferRef pixelBufferRef);
         
         /*! Used by Objective-C Device/Interface Orientation Notifications */
         void reorientCamera();
+        void bufferCaptured(CMSampleBufferRef sampleBuffer);
         
-    private:
+    protected:
         
         /*! 
          * Get a camera with a specified position
@@ -131,25 +148,52 @@ namespace videocore { namespace iOS {
          * 
          * \return the camera device, if found.
          */
-        void* cameraWithPosition(int position);
+        AVCaptureDevice *cameraWithPosition(int position);
+
+        /*!
+         * Get video orientation for device orientation
+         *
+         * \param orientation Device or interface orientation
+         *
+         * \return Video orientation
+         */
+        AVCaptureVideoOrientation videoOrientationForInterfaceOrientation(long orientation);
         
-    private:
+        
+        /*!
+         *  Property for capture output delegate
+         */
+        void setCaptureOutputDelegate(id value);
+        
+        /*!
+         *  Start listening to orientation change notifications
+         */
+        void startListeningToOrientationChange();
+        
+        /*!
+         *  Stop listening to orientation change notifications
+         */
+        void stopListeningToOrientationChange();
+        
+        
+        /*!
+         *  Gets current capture device position
+         */
+        AVCaptureDevicePosition captureDevicePosition();
+        
+        /*!
+         *  Gets frame duration based on fps
+         */
+        CMTime frameDuration();
         
         glm::mat4 m_matrix;
         struct { float x, y, w, h, vw, vh, a; } m_size, m_targetSize;
-        
-        std::weak_ptr<IOutput> m_output;
-        
-        void* m_captureSession;
-        void* m_captureDevice;
-        void* m_callbackSession;
-        void* m_previewLayer;
         
         int  m_fps;
         bool m_torchOn;
         bool m_useInterfaceOrientation;
         bool m_orientationLocked;
-
+        bool m_isFront;
     };
     
 }
