@@ -29,6 +29,7 @@
 #include <videocore/sources/ISource.hpp>
 #include <videocore/transforms/IOutput.hpp>
 #import <AVFoundation/AVfoundation.h>
+#import <videocore/sources/iOS/VCWriter.h>
 
 namespace videocore { namespace iOS {
     
@@ -59,6 +60,10 @@ namespace videocore { namespace iOS {
         /*! ISource::setOutput */
         void setOutput(std::shared_ptr<IOutput> output);
         
+        /*! Property for capture output delegate */
+        VCWriter *writer();
+        void setWriter(VCWriter *writer);
+        
         /*!
          *  Setup camera properties
          *
@@ -68,7 +73,7 @@ namespace videocore { namespace iOS {
         
     public:
         /*! Used by Objective-C Capture Session */
-        virtual void bufferCaptured(CMSampleBufferRef sampleBuffer) = 0;
+        void bufferCaptured(CMSampleBufferRef sampleBuffer);
         
     protected:
         /*!
@@ -141,6 +146,8 @@ namespace videocore { namespace iOS {
         virtual void setCaptureSession(AVCaptureSession *session);
         
         std::weak_ptr<IOutput> m_output;
+        
+        VCWriter *m_writer;
     };
     
 }

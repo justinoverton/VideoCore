@@ -44,7 +44,7 @@
     [[NSUserDefaults standardUserDefaults] setValue:@"name_preference" forKey:@"test"];
 
 
-    _session = [[VCSimpleSession alloc] initWithVideoSize:rect.size frameRate:30 bitrate:1000000 useInterfaceOrientation:YES];
+    _session = [[VCSimpleSession alloc] initWithVideoSize:CGSizeMake(720, 1280) frameRate:30 bitrate:2200000 useInterfaceOrientation:YES];
 //    _session.orientationLocked = YES;
     [self.previewView addSubview:_session.previewView];
     _session.previewView.frame = self.previewView.bounds;
@@ -85,7 +85,9 @@
                                      filePath:path];
             break;
         default:
-            [_session endRtmpSession];
+            [_session endRtmpSessionWithCompletionHandler:^{
+                NSLog(@"mama");
+            }];
             break;
     }
 }

@@ -103,7 +103,7 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 @property (nonatomic, assign) BOOL          useAdaptiveBitrate;     /* Default is off */
 @property (nonatomic, readonly) int         estimatedThroughput;    /* Bytes Per Second. */
 @property (nonatomic, assign) VCAspectMode  aspectMode;
-@property (nonatomic, readonly) NSString    *filePath;
+@property (nonatomic, copy, readonly) NSString    *filePath;
 
 @property (nonatomic, readonly) AVCaptureSession    *captureSession;
 
@@ -147,7 +147,7 @@ typedef NS_ENUM(NSInteger, VCFilter) {
                         filePath:(NSString *)path;
 
 - (void) endRtmpSession;
-
+- (void) endRtmpSessionWithCompletionHandler:(void(^)(void))handler;
 /*!
  *  Note that the rect you provide should be based on your video dimensions.  The origin
  *  of the image will be the center of the image (so if you put 0,0 as its position, it will

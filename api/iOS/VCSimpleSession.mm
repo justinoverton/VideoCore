@@ -25,6 +25,7 @@
 
 #import <videocore/api/iOS/VCSimpleSession.h>
 #import <videocore/api/iOS/VCPreviewView.h>
+#import <videocore/sources/iOS/VCWriter.h>
 
 #include <videocore/rtmp/RTMPSession.h>
 #include <videocore/transforms/RTMP/AACPacketizer.h>
@@ -148,9 +149,11 @@ namespace videocore { namespace simpleApi {
     VCFilter _filter;
 }
 @property (nonatomic, readwrite)    VCSessionState              rtmpSessionState;
-@property (nonatomic, strong)       NSString                    *filePath;
+@property (nonatomic, copy)         NSString                    *filePath;
+@property (nonatomic, strong)       VCWriter                    *writer;
 
 - (void) setupGraph;
+- (void) setupWriter;
 
 @end
 
@@ -394,6 +397,16 @@ namespace videocore { namespace simpleApi {
 - (AVCaptureSession *)captureSession {
     return videocore::iOS::CaptureSessionSource::sharedCaptureSession();
 }
+
+- (void)setWriter:(VCWriter *)writer {
+    if (writer != _writer) {
+        [_writer release];
+        _writer = [writer retain];
+        
+        m_cameraSource->setWriter(writer);
+        //    m_micSource->setWriter(writer);
+    }
+}
 // -----------------------------------------------------------------------------
 //  Public Methods
 // -----------------------------------------------------------------------------
@@ -509,6 +522,7 @@ namespace videocore { namespace simpleApi {
 {
     [self endRtmpSession];
     [self.captureSession stopRunning];
+
     m_audioMixer.reset();
     m_videoMixer.reset();
     m_videoSplit.reset();
@@ -528,7 +542,7 @@ namespace videocore { namespace simpleApi {
 - (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
                     andStreamKey:(NSString *)streamKey
 {
-    [self startRtmpSessionWithURL:rtmpUrl andStreamKey:streamKey];
+    [self startRtmpSessionWithURL:rtmpUrl andStreamKey:streamKey filePath:nil completionHandler:nil];
 }
 
 - (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
@@ -668,20 +682,32 @@ namespace videocore { namespace simpleApi {
                (self.audioChannelCount == 2));
 
     m_outputSession->setSessionParameters(sp);
+    
+    [self setupWriter];
 }
-- (void) endRtmpSession
-{
+- (void) endRtmpSession {
+    [self endRtmpSessionWithCompletionHandler:nil];
+}
 
+- (void) endRtmpSessionWithCompletionHandler:(void(^)(void))handler {
+    [self.writer finishWritingWithCompletionHandler:^{
+        self.filePath = nil;
+        self.writer = nil;
+        if (handler) {
+            handler();
+        }
+    }];
+    
     m_h264Packetizer.reset();
     m_aacPacketizer.reset();
     m_videoSplit->removeOutput(m_h264Encoder);
     m_h264Encoder.reset();
     m_aacEncoder.reset();
-
+    
     m_outputSession.reset();
-
+    
     _bitrate = _bpsCeiling;
-
+    
     self.rtmpSessionState = VCSessionStateEnded;
 }
 
@@ -724,8 +750,40 @@ namespace videocore { namespace simpleApi {
 #pragma mark - Private Methods
 
 
-- (void) setupGraph
-{
+- (void) setupWriter {
+    id compressionSettings = @{
+                               AVVideoAverageBitRateKey: @(self.bitrate),
+                               AVVideoMaxKeyFrameIntervalKey: @(2 * self.fps),
+                               AVVideoProfileLevelKey: AVVideoProfileLevelH264Main41,
+                               AVVideoAllowFrameReorderingKey: @(NO),
+                               AVVideoH264EntropyModeKey: AVVideoH264EntropyModeCABAC
+                               };
+    
+    CGSize videoSize = self.videoSize;
+    
+    id videoSettings = @{AVVideoCodecKey: AVVideoCodecH264,
+                         AVVideoWidthKey: @(videoSize.width),
+                         AVVideoHeightKey: @(videoSize.height),
+                         AVVideoCompressionPropertiesKey: compressionSettings,
+                         };
+
+    
+    id audioSettings = @{AVFormatIDKey: @(kAudioFormatMPEG4AAC),
+                         AVSampleRateKey: @(self.audioSampleRate),
+                         AVNumberOfChannelsKey: @(self.audioChannelCount),
+                         AVEncoderBitRateKey: @128000
+                         };
+    
+    VCWriter *writer = [VCWriter writerWithFilePath:self.filePath
+                                      videoSettings:videoSettings
+                                      audioSettings:audioSettings];
+    
+    self.writer = writer;
+    
+    [writer startWriting];
+}
+
+- (void) setupGraph {
     const double frameDuration = 1. / static_cast<double>(self.fps);
     auto session = self.captureSession;
     
@@ -791,7 +849,7 @@ namespace videocore { namespace simpleApi {
                                                                                 );
 
 
-        std::dynamic_pointer_cast<videocore::iOS::CameraSource>(m_cameraSource)->setup(self.fps, (self.cameraState == VCCameraStateFront), self.useInterfaceOrientation);
+        m_cameraSource->setup(self.fps, (self.cameraState == VCCameraStateFront), self.useInterfaceOrientation);
         m_cameraSource->setContinuousAutofocus(true);
         m_cameraSource->setContinuousExposure(true);
         

@@ -23,7 +23,7 @@
  
  */
 
-#include "CaptureSessionSource.h"
+#include <videocore/sources/iOS/CaptureSessionSource.h>
 
 #import <UIKit/UIKit.h>
 
@@ -58,7 +58,8 @@ namespace videocore { namespace iOS {
     m_captureSession(nil),
     m_captureInput(nil),
     m_captureOutput(nil),
-    m_captureOutputDelegate(nil)
+    m_captureOutputDelegate(nil),
+    m_writer(nil)
     {}
         
         /*! Destructor */
@@ -67,6 +68,7 @@ namespace videocore { namespace iOS {
         setCaptureInput(nil);
         setCaptureOutput(nil);
         setCaptureOutputDelegate(nil);
+        setWriter(nil);
     }
         
         /*! ISource::setOutput */
@@ -106,7 +108,15 @@ namespace videocore { namespace iOS {
             *field = [value retain];
         }
     }
+    
+    VCWriter *CaptureSessionSource::writer() {
+        return m_writer;
+    }
 
+    void CaptureSessionSource::setWriter(VCWriter *writer) {
+        setValueForField(&m_writer, writer);
+    }
+    
     id CaptureSessionSource::captureInput() {
         return m_captureInput;
     }

@@ -318,6 +318,8 @@ namespace videocore { namespace iOS {
     }
 
     void CameraSource::bufferCaptured(CMSampleBufferRef sampleBuffer) {
+        [writer() encodeVideoBuffer:sampleBuffer];
+        
         auto output = m_output.lock();
         if (output) {
             

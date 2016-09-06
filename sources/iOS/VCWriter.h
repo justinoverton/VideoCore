@@ -23,12 +23,33 @@
  
  */
 
+#import <Foundation/Foundation.h>
+
 #import <AVFoundation/AVFoundation.h>
 
-typedef void(^AVCaptureSessionConfigurationBlock)(AVCaptureSession *session);
+@interface VCWriter : NSObject
+@property (nonatomic, copy, readonly)     NSString     *filePath;
+@property (nonatomic, copy, readonly)     NSDictionary *videoSettings;
+@property (nonatomic, copy, readonly)     NSDictionary *audioSettings;
 
-@interface AVCaptureSession (VCExtensions)
+@property (nonatomic, readonly, getter=isWriting)    BOOL    writing;
 
-- (void)configureWithBlock:(AVCaptureSessionConfigurationBlock)block;
++ (instancetype)writerWithFilePath:(NSString *)filePath
+                     videoSettings:(NSDictionary *)videoSettings
+                     audioSettings:(NSDictionary *)audioSettings;
+
+- (instancetype)initWithFilePath:(NSString *)filePath
+                   videoSettings:(NSDictionary *)videoSettings
+                   audioSettings:(NSDictionary *)audioSettings;
+
+- (void)startWriting;
+
+- (void)finishWritingWithCompletionHandler:(void(^)(void))handler;
+
+- (void)cancelWriting;
+
+- (void)encodeVideoBuffer:(CMSampleBufferRef)sampleBuffer;
+
+- (void)encodeAudioBuffer:(CMSampleBufferRef)sampleBuffer;
 
 @end
