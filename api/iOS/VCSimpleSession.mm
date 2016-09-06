@@ -55,6 +55,7 @@
 
 
 #include <sstream>
+#import <AVFoundation/AVFoundation.h>
 
 
 static const int kMinVideoBitrate = 32000;
@@ -146,7 +147,8 @@ namespace videocore { namespace simpleApi {
     
     VCFilter _filter;
 }
-@property (nonatomic, readwrite) VCSessionState rtmpSessionState;
+@property (nonatomic, readwrite)    VCSessionState              rtmpSessionState;
+@property (nonatomic, strong)       NSString                    *filePath;
 
 - (void) setupGraph;
 
@@ -172,6 +174,7 @@ namespace videocore { namespace simpleApi {
 @dynamic exposurePointOfInterest;
 @dynamic useAdaptiveBitrate;
 @dynamic estimatedThroughput;
+@dynamic captureSession;
 
 @dynamic previewView;
 // -----------------------------------------------------------------------------
@@ -387,6 +390,10 @@ namespace videocore { namespace simpleApi {
 - (int) estimatedThroughput {
     return _estimatedThroughput;
 }
+
+- (AVCaptureSession *)captureSession {
+    return videocore::iOS::CaptureSessionSource::sharedCaptureSession();
+}
 // -----------------------------------------------------------------------------
 //  Public Methods
 // -----------------------------------------------------------------------------
@@ -501,12 +508,12 @@ namespace videocore { namespace simpleApi {
 - (void) dealloc
 {
     [self endRtmpSession];
+    [self.captureSession stopRunning];
     m_audioMixer.reset();
     m_videoMixer.reset();
     m_videoSplit.reset();
     m_aspectTransform.reset();
     m_positionTransform.reset();
-    [videocore::iOS::CaptureSessionSource::sharedCaptureSession() stopRunning];
     m_micSource.reset();
     m_cameraSource.reset();
     m_pbOutput.reset();
@@ -521,13 +528,21 @@ namespace videocore { namespace simpleApi {
 - (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
                     andStreamKey:(NSString *)streamKey
 {
+    [self startRtmpSessionWithURL:rtmpUrl andStreamKey:streamKey];
+}
 
+- (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
+                    andStreamKey:(NSString *)streamKey
+                        filePath:(NSString *)path
+{
     __block VCSimpleSession* bSelf = self;
-
+    
+    self.filePath = path;
     dispatch_async(_graphManagementQueue, ^{
         [bSelf startSessionInternal:rtmpUrl streamKey:streamKey];
     });
 }
+
 - (void) startSessionInternal: (NSString*) rtmpUrl
                     streamKey: (NSString*) streamKey
 {
@@ -712,7 +727,8 @@ namespace videocore { namespace simpleApi {
 - (void) setupGraph
 {
     const double frameDuration = 1. / static_cast<double>(self.fps);
-
+    auto session = self.captureSession;
+    
     {
         // Add audio mixer
         const double aacPacketTime = 1024. / self.audioSampleRate;
@@ -807,7 +823,7 @@ namespace videocore { namespace simpleApi {
         m_videoMixer->start();
     }
     
-    [videocore::iOS::CaptureSessionSource::sharedCaptureSession() startRunning];
+    [session startRunning];
 }
 - (void) addEncodersAndPacketizers
 {

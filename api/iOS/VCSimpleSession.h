@@ -103,6 +103,9 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 @property (nonatomic, assign) BOOL          useAdaptiveBitrate;     /* Default is off */
 @property (nonatomic, readonly) int         estimatedThroughput;    /* Bytes Per Second. */
 @property (nonatomic, assign) VCAspectMode  aspectMode;
+@property (nonatomic, readonly) NSString    *filePath;
+
+@property (nonatomic, readonly) AVCaptureSession    *captureSession;
 
 @property (nonatomic, assign) VCFilter      filter; /* Default is VCFilterNormal*/
 
@@ -136,8 +139,12 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 
 // -----------------------------------------------------------------------------
 
-- (void) startRtmpSessionWithURL:(NSString*) rtmpUrl
-                    andStreamKey:(NSString*) streamKey;
+- (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
+                    andStreamKey:(NSString *)streamKey;
+
+- (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
+                    andStreamKey:(NSString *)streamKey
+                        filePath:(NSString *)path;
 
 - (void) endRtmpSession;
 

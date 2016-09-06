@@ -102,13 +102,14 @@ namespace videocore { namespace iOS {
     void CameraSource::setupCaptureSessionConnections() {
         NSMutableArray *inputs = [NSMutableArray array];
         
-        
-        id input = setupCaptureInputWithCameraPosition(AVCaptureDevicePositionBack);
+        id input = setupCaptureInputWithCameraPosition(AVCaptureDevicePositionFront);
         [inputs addObject:input];
+        
+        input = setupCaptureInputWithCameraPosition(AVCaptureDevicePositionBack);
+        [inputs addObject:input];
+        
+        addCaptureInput(input);
         setCaptureInput(input);
-        
-        input = setupCaptureInputWithCameraPosition(AVCaptureDevicePositionFront);
-        [inputs addObject:input];
 
         setInputs([[inputs copy] autorelease]);
         
@@ -124,17 +125,16 @@ namespace videocore { namespace iOS {
             device.activeVideoMinFrameDuration = duration;
             device.activeVideoMaxFrameDuration = duration;
         }];
-
-        AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:NULL];
-        addCaptureInput(input);
         
-        return input;
+        return [AVCaptureDeviceInput deviceInputWithDevice:device error:NULL];
     }
     
     void CameraSource::setupCaptureOutput() {
         AVCaptureSession *session = captureSession();
         AVCaptureVideoDataOutput *output = [[[AVCaptureVideoDataOutput alloc] init] autorelease];
         output.videoSettings = @{(NSString*)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA) };
+        output.alwaysDiscardsLateVideoFrames = YES;
+        
         AVCaptureConnection *connection = [output connectionWithMediaType:AVMediaTypeVideo];
         CMTime duration = frameDuration();
         if ([connection isVideoMinFrameDurationSupported]) {

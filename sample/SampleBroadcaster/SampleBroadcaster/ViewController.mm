@@ -72,12 +72,17 @@
 }
 
 - (IBAction)btnConnectTouch:(id)sender {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *path = [paths.firstObject stringByAppendingPathComponent:@"video.mp4"];
+    
     switch(_session.rtmpSessionState) {
         case VCSessionStateNone:
         case VCSessionStatePreviewStarted:
         case VCSessionStateEnded:
         case VCSessionStateError:
-            [_session startRtmpSessionWithURL:@"rtmp://192.168.0.154:1935/videocore" andStreamKey:@"stream"];
+            [_session startRtmpSessionWithURL:@"rtmp://192.168.0.154:1935/videocore"
+                                 andStreamKey:@"stream"
+                                     filePath:path];
             break;
         default:
             [_session endRtmpSession];
