@@ -284,7 +284,9 @@ namespace videocore { namespace iOS {
         [captureSession() configureWithBlock:^(AVCaptureSession *session) {
             for (AVCaptureVideoDataOutput *output in session.outputs) {
                 for (AVCaptureConnection *connection in output.connections) {
-                    connection.videoOrientation = videoOrientation;
+                    if (connection.supportsVideoOrientation) {
+                        connection.videoOrientation = videoOrientation;
+                    }
                 }
             }
         }];
