@@ -60,7 +60,7 @@ namespace videocore { namespace iOS {
          *  \param useInterfaceOrientation whether to use interface or device orientation as reference for video capture orientation
          *  \param callbackBlock block to be called after everything is set
          */
-        void setup(int fps, bool useFront, bool useInterfaceOrientation);
+        void setup(AVCaptureSession *session, int fps, bool useFront, bool useInterfaceOrientation);
         
         
         /*!

@@ -42,16 +42,6 @@ namespace videocore { namespace iOS {
         return queue;
     }
     
-    AVCaptureSession *CaptureSessionSource::sharedCaptureSession() {
-        static AVCaptureSession *session = nil;
-        static dispatch_once_t onceToken;
-        dispatch_once(&onceToken, ^{
-            session = [[AVCaptureSession alloc] init];
-        });
-        
-        return session;
-    }
-    
         /*! Constructor */
     CaptureSessionSource::CaptureSessionSource()
     :
@@ -76,13 +66,10 @@ namespace videocore { namespace iOS {
         m_output = output;
     }
         
-    void CaptureSessionSource::setup() {
-        AVCaptureSession *session = sharedCaptureSession();
+    void CaptureSessionSource::setup(AVCaptureSession *session) {
         setCaptureSession(session);
         
         setupCaptureSessionConnections();
-        
-        [session startRunning];
     }
     
     NSArray *CaptureSessionSource::getCaptureDevices() {

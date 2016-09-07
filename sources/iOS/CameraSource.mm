@@ -91,12 +91,12 @@ namespace videocore { namespace iOS {
         setInputs(nil);
     }
     
-    void CameraSource::setup(int fps, bool useFront, bool useInterfaceOrientation) {
+    void CameraSource::setup(AVCaptureSession *session, int fps, bool useFront, bool useInterfaceOrientation) {
         m_fps = fps;
         m_useInterfaceOrientation = useInterfaceOrientation;
         m_isFront = useFront;
         
-        CaptureSessionSource::setup();
+        CaptureSessionSource::setup(session);
     }
 
     void CameraSource::setupCaptureSessionConnections() {

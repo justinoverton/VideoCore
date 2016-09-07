@@ -45,12 +45,6 @@ namespace videocore { namespace iOS {
          */
         static dispatch_queue_t sharedDispatchQueue();
         
-        /*!
-         *  Returns a capture session to be used in all children.
-         *  All children are enforced to have the same capture session.
-         */
-        static AVCaptureSession *sharedCaptureSession();
-        
         /*! Constructor */
         CaptureSessionSource();
         
@@ -69,7 +63,7 @@ namespace videocore { namespace iOS {
          *
          *  \param session  Capture session to use, internal one is initialized, if parameter is nil
          */
-        virtual void setup();
+        virtual void setup(AVCaptureSession *captureSession);
         
     public:
         /*! Used by Objective-C Capture Session */

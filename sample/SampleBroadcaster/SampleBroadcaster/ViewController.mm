@@ -86,7 +86,16 @@
             break;
         default:
             [_session endRtmpSessionWithCompletionHandler:^{
-                NSLog(@"mama");
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [_session.previewView removeFromSuperview];
+                    [_session release];
+                    
+                    _session = [[VCSimpleSession alloc] initWithVideoSize:CGSizeMake(720, 1280) frameRate:30 bitrate:2200000 useInterfaceOrientation:YES];
+                    //    _session.orientationLocked = YES;
+                    [self.previewView addSubview:_session.previewView];
+                    _session.previewView.frame = self.previewView.bounds;
+                    _session.delegate = self;
+                });
             }];
             break;
     }

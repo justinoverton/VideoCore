@@ -78,11 +78,11 @@ namespace videocore { namespace iOS {
         setAudioBufferListData(nil);
     }
     
-    void MicSource::setup(double sampleRate, int channelCount) {
+    void MicSource::setup(AVCaptureSession *session, double sampleRate, int channelCount) {
         m_sampleRate = sampleRate;
         m_channelCount = channelCount;
         
-        CaptureSessionSource::setup();
+        CaptureSessionSource::setup(session);
         
         [captureSession() startRunning];
     }

@@ -69,7 +69,7 @@ namespace videocore { namespace iOS {
          *  \param sampleRate   Sample rate
          *  \param channelCount Channel count
          */
-        void setup(double sampleRate, int channelCount);
+        void setup(AVCaptureSession *session, double sampleRate, int channelCount);
 
         /*! ISource::setOutput */
         void setOutput(std::shared_ptr<IOutput> output);

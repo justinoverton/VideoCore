@@ -151,6 +151,7 @@ namespace videocore { namespace simpleApi {
 @property (nonatomic, readwrite)    VCSessionState              rtmpSessionState;
 @property (nonatomic, copy)         NSString                    *filePath;
 @property (nonatomic, strong)       VCWriter                    *writer;
+@property (nonatomic, strong)       AVCaptureSession            *captureSession;
 
 - (void) setupGraph;
 - (void) setupWriter;
@@ -177,7 +178,6 @@ namespace videocore { namespace simpleApi {
 @dynamic exposurePointOfInterest;
 @dynamic useAdaptiveBitrate;
 @dynamic estimatedThroughput;
-@dynamic captureSession;
 
 @dynamic previewView;
 // -----------------------------------------------------------------------------
@@ -394,10 +394,6 @@ namespace videocore { namespace simpleApi {
     return _estimatedThroughput;
 }
 
-- (AVCaptureSession *)captureSession {
-    return videocore::iOS::CaptureSessionSource::sharedCaptureSession();
-}
-
 - (void)setWriter:(VCWriter *)writer {
     if (writer != _writer) {
         [_writer release];
@@ -522,6 +518,7 @@ namespace videocore { namespace simpleApi {
 {
     [self endRtmpSession];
     [self.captureSession stopRunning];
+    self.captureSession = nil;
 
     m_audioMixer.reset();
     m_videoMixer.reset();
@@ -784,8 +781,10 @@ namespace videocore { namespace simpleApi {
 }
 
 - (void) setupGraph {
+    AVCaptureSession *session = [[[AVCaptureSession alloc] init] autorelease];
+    self.captureSession = session;
+    
     const double frameDuration = 1. / static_cast<double>(self.fps);
-    auto session = self.captureSession;
     
     {
         // Add audio mixer
@@ -849,7 +848,7 @@ namespace videocore { namespace simpleApi {
                                                                                 );
 
 
-        m_cameraSource->setup(self.fps, (self.cameraState == VCCameraStateFront), self.useInterfaceOrientation);
+        m_cameraSource->setup(session, self.fps, (self.cameraState == VCCameraStateFront), self.useInterfaceOrientation);
         m_cameraSource->setContinuousAutofocus(true);
         m_cameraSource->setContinuousExposure(true);
         
@@ -870,7 +869,7 @@ namespace videocore { namespace simpleApi {
     {
         // Add mic source
         m_micSource = std::make_shared<videocore::iOS::MicSource>();
-        m_micSource->setup(self.audioSampleRate, self.audioChannelCount);
+        m_micSource->setup(session, self.audioSampleRate, self.audioChannelCount);
         m_micSource->setOutput(m_audioMixer);
 
         const auto epoch = std::chrono::steady_clock::now();
