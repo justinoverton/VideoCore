@@ -30,7 +30,8 @@
 #include <videocore/transforms/IOutput.hpp>
 #include <CoreVideo/CoreVideo.h>
 #include <glm/glm.hpp>
-#import <UIKit/UIKit.h>
+
+#import <Foundation/Foundation.h>
 
 
 namespace videocore { namespace iOS {
@@ -47,7 +48,7 @@ namespace videocore { namespace iOS {
         CameraSource();
         
         /*! Destructor */
-        virtual ~CameraSource();
+        ~CameraSource();
         
         
         /*!
@@ -105,7 +106,6 @@ namespace videocore { namespace iOS {
         bool setExposurePointOfInterest(float x, float y);
         
         bool setContinuousExposure(bool wantsContinuous);
-        
         
         /*!
          *  Returns media type for the source

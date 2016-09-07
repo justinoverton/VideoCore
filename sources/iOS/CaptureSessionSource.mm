@@ -147,7 +147,6 @@ namespace videocore { namespace iOS {
     
     void CaptureSessionSource::setCaptureSession(AVCaptureSession *session) {
         if (m_captureSession != session) {
-            [m_captureSession stopRunning];
             removeSessionConnections();
             setValueForField(&m_captureSession, session);
         }
