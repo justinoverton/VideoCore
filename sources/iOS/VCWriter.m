@@ -42,6 +42,12 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
 @property (nonatomic, assign)   CMTime              videoStartTime;
 @property (nonatomic, assign)   CMTime              audioStartTime;
 
+@property (nonatomic, assign)   CMTime              videoLastTime;
+@property (nonatomic, assign)   CMTime              audioLastTime;
+
+@property (nonatomic, assign, getter=isAudioContinued)    BOOL    audioContinued;
+@property (nonatomic, assign, getter=isVideoContinued)    BOOL    videoContinued;
+
 - (void)encodeAndReleaseSampleBuffer:(CMSampleBufferRef)sampleBuffer withWriterInput:(AVAssetWriterInput *)input;
 
 - (void)dispatchBlock:(void(^)(void))block;
@@ -128,6 +134,15 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     return nil != self.assetWriter;
 }
 
+- (void)setPaused:(BOOL)paused {
+    if (!paused && _paused != paused) {
+        self.audioContinued = YES;
+        self.videoContinued = YES;
+    }
+    
+    _paused = paused;
+}
+
 - (void)setAssetWriter:(AVAssetWriter *)assetWriter {
     if (assetWriter != _assetWriter) {
         [_assetWriter cancelWriting];
@@ -155,6 +170,9 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     [self dispatchBlock:^{
         self.videoStartTime = kCMTimeInvalid;
         self.audioStartTime = kCMTimeInvalid;
+        
+        self.videoLastTime = kCMTimeInvalid;
+        self.audioLastTime = kCMTimeInvalid;
         
         [self deletePreviousFile];
         
@@ -206,14 +224,43 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     }
     
     CMTime startTime = self.videoStartTime;
+    CMTime timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+
     if (CMTIME_IS_INVALID(self.videoStartTime)) {
-        startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+        startTime = timestamp;
         self.videoStartTime = startTime;
+        [self printDescription:self.videoStartTime];
+    }
+    
+    if ([self isVideoContinued]) {
+        [self printDescription:self.videoStartTime];
+        self.videoStartTime = CMTimeAdd(self.videoStartTime,
+                                        CMTimeSubtract(timestamp, self.videoLastTime));
+        self.videoContinued = NO;
+        startTime = self.videoStartTime;
+        [self printDescription:self.videoStartTime];
+    }
+    
+    if (![self isPaused]) {
+        [self printDescription:self.videoLastTime];
+        self.videoLastTime = timestamp;
+        [self printDescription:self.videoLastTime];
     }
     
     CMSampleBufferRef copiedBuffer = [self copySampleBuffer:sampleBuffer withStartTime:startTime];
     
     [self encodeAndReleaseSampleBuffer:copiedBuffer withWriterInput:self.videoInput];
+}
+
+- (void)printDescription:(CMTime)cmtime {
+    NSUInteger dTotalSeconds = CMTimeGetSeconds(cmtime);
+    
+    NSUInteger dHours = floor(dTotalSeconds / 3600);
+    NSUInteger dMinutes = floor(dTotalSeconds % 3600 / 60);
+    NSUInteger dSeconds = floor(dTotalSeconds % 3600 % 60);
+    
+    NSString *videoDurationText = [NSString stringWithFormat:@"%i:%02i:%02i",dHours, dMinutes, dSeconds];
+    NSLog(videoDurationText);
 }
 
 - (void)encodeAudioBuffer:(CMSampleBufferRef)sampleBuffer {
@@ -222,9 +269,30 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     }
     
     CMTime startTime = self.audioStartTime;
+    CMTime timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    
     if (CMTIME_IS_INVALID(self.audioStartTime)) {
-        startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+        [self printDescription:self.audioStartTime];
+        startTime = timestamp;
         self.audioStartTime = startTime;
+        [self printDescription:self.audioStartTime];
+    }
+    
+    if ([self isAudioContinued]) {
+        [self printDescription:self.audioStartTime];
+        
+        self.audioStartTime = CMTimeAdd(self.audioStartTime,
+                                        CMTimeSubtract(timestamp, self.audioLastTime));
+        self.audioContinued = NO;
+        startTime = self.audioStartTime;
+        
+        [self printDescription:self.audioStartTime];
+    }
+    
+    if (![self isPaused]) {
+        [self printDescription:self.audioLastTime];
+        self.audioLastTime = timestamp;
+        [self printDescription:self.audioLastTime];
     }
     
     CMSampleBufferRef copiedBuffer = [self copySampleBuffer:sampleBuffer withStartTime:startTime];
@@ -236,15 +304,17 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
 #pragma mark Private
 
 - (void)encodeAndReleaseSampleBuffer:(CMSampleBufferRef)sampleBuffer withWriterInput:(AVAssetWriterInput *)input {
-    AVAssetWriter *assetWriter = self.assetWriter;
-    
-    [self dispatchBlock:^{
-        if (CMSampleBufferDataIsReady(sampleBuffer) && input.readyForMoreMediaData) {
-            [input appendSampleBuffer:sampleBuffer];
-        }
-        
-        CFRelease(sampleBuffer);
-    }];
+        [self dispatchBlock:^{
+            if (![self isPaused]) {
+                if (CMSampleBufferDataIsReady(sampleBuffer) && input.readyForMoreMediaData) {
+                    [input appendSampleBuffer:sampleBuffer];
+                }
+                
+                CFRelease(sampleBuffer);
+            } else {
+                CFRelease(sampleBuffer);
+            }
+        }];
 }
 
 - (void)dispatchBlock:(void(^)(void))block {
