@@ -42,6 +42,7 @@ typedef NS_ENUM(NSInteger, VCSessionState)
     VCSessionStatePreviewStarted,
     VCSessionStateStarting,
     VCSessionStateStarted,
+    VCSessionStatePaused,
     VCSessionStateEnded,
     VCSessionStateError
 
@@ -145,6 +146,11 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 - (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
                     andStreamKey:(NSString *)streamKey
                         filePath:(NSString *)path;
+
+- (void) pauseRtmpSession;
+
+- (void) continueRtmpSessionWithURL:(NSString *)rtmpUrl
+                       andStreamKey:(NSString *)streamKey;
 
 - (void) endRtmpSession;
 - (void) endRtmpSessionWithCompletionHandler:(void(^)(void))handler;

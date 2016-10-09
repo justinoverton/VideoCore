@@ -551,6 +551,7 @@ namespace videocore { namespace simpleApi {
     self.filePath = path;
     dispatch_async(_graphManagementQueue, ^{
         [bSelf startSessionInternal:rtmpUrl streamKey:streamKey];
+        [bSelf setupWriter];
     });
 }
 
@@ -566,15 +567,13 @@ namespace videocore { namespace simpleApi {
                                                           ClientState_t state) {
                                                           
                                                           DLog("ClientState: %d\n", state);
-
+                                                          
                                                           switch(state) {
-
                                                               case kClientStateConnected:
                                                                   self.rtmpSessionState = VCSessionStateStarting;
                                                                   break;
                                                               case kClientStateSessionStarted:
                                                               {
-
                                                                   __block VCSimpleSession* bSelf = self;
                                                                   dispatch_async(_graphManagementQueue, ^{
                                                                       [bSelf addEncodersAndPacketizers];
@@ -679,9 +678,30 @@ namespace videocore { namespace simpleApi {
                (self.audioChannelCount == 2));
 
     m_outputSession->setSessionParameters(sp);
-    
-    [self setupWriter];
 }
+
+- (void) pauseRtmpSession {
+    m_h264Packetizer.reset();
+    m_aacPacketizer.reset();
+    m_videoSplit->removeOutput(m_h264Encoder);
+    m_h264Encoder.reset();
+    m_aacEncoder.reset();
+
+    m_outputSession.reset();
+    
+    _bitrate = _bpsCeiling;
+    
+    self.writer.paused = YES;
+    self.rtmpSessionState = VCSessionStatePaused;
+}
+
+- (void) continueRtmpSessionWithURL:(NSString *)rtmpUrl
+                       andStreamKey:(NSString *)streamKey
+{
+    [self startRtmpSessionWithURL:rtmpUrl andStreamKey:streamKey];
+    self.writer.paused = NO;
+}
+
 - (void) endRtmpSession {
     [self endRtmpSessionWithCompletionHandler:nil];
 }
