@@ -681,13 +681,15 @@ namespace videocore { namespace simpleApi {
 }
 
 - (void) pauseRtmpSession {
-    m_h264Packetizer.reset();
-    m_aacPacketizer.reset();
-    m_videoSplit->removeOutput(m_h264Encoder);
-    m_h264Encoder.reset();
-    m_aacEncoder.reset();
+    dispatch_async(_graphManagementQueue, ^{
+        m_h264Packetizer.reset();
+        m_aacPacketizer.reset();
+        m_videoSplit->removeOutput(m_h264Encoder);
+        m_h264Encoder.reset();
+        m_aacEncoder.reset();
 
-    m_outputSession.reset();
+        m_outputSession.reset();
+    });
     
     _bitrate = _bpsCeiling;
     
@@ -715,13 +717,15 @@ namespace videocore { namespace simpleApi {
         }
     }];
     
-    m_h264Packetizer.reset();
-    m_aacPacketizer.reset();
-    m_videoSplit->removeOutput(m_h264Encoder);
-    m_h264Encoder.reset();
-    m_aacEncoder.reset();
-    
-    m_outputSession.reset();
+    dispatch_async(_graphManagementQueue, ^{
+        m_h264Packetizer.reset();
+        m_aacPacketizer.reset();
+        m_videoSplit->removeOutput(m_h264Encoder);
+        m_h264Encoder.reset();
+        m_aacEncoder.reset();
+        
+        m_outputSession.reset();
+    });
     
     _bitrate = _bpsCeiling;
     
