@@ -33,7 +33,7 @@
 @property (nonatomic, copy, readonly)     NSDictionary *audioSettings;
 
 @property (nonatomic, readonly, getter=isWriting)   BOOL    writing;
-@property (nonatomic, assign, getter=isPaused)      BOOL    paused;
+@property (atomic, assign, getter=isPaused)      BOOL    paused;
 
 + (instancetype)writerWithFilePath:(NSString *)filePath
                      videoSettings:(NSDictionary *)videoSettings
