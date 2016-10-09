@@ -748,6 +748,10 @@ namespace videocore { namespace simpleApi {
 
 
 - (void) setupWriter {
+    if (nil == self.filePath) {
+        return;
+    }
+    
     id compressionSettings = @{
                                AVVideoAverageBitRateKey: @(self.bitrate),
                                AVVideoMaxKeyFrameIntervalKey: @(2 * self.fps),
