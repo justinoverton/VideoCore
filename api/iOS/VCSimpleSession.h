@@ -70,10 +70,17 @@ typedef NS_ENUM(NSInteger, VCFilter) {
     VCFilterGlow
 };
 
+typedef NS_ENUM(NSInteger, VCConnectionQuality) {
+    kVCConnectionQualityHigh,
+    kVCConnectionQualityMedium,
+    kVCConnectionQualityLow
+};
+
 @protocol VCSessionDelegate <NSObject>
 @required
 - (void) connectionStatusChanged: (VCSessionState) sessionState;
 @optional
+- (void) didChangeConnectionQuality:(VCConnectionQuality)connectionQuality;
 - (void) didAddCameraSource:(VCSimpleSession*)session;
 
 - (void) detectedThroughput: (NSInteger) throughputInBytesPerSecond; //Depreciated, should use method below

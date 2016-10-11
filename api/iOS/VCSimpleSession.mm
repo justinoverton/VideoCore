@@ -584,11 +584,9 @@ namespace videocore { namespace simpleApi {
                                                                   break;
                                                               case kClientStateError:
                                                                   self.rtmpSessionState = VCSessionStateError;
-                                                                  [self endRtmpSession];
                                                                   break;
                                                               case kClientStateNotConnected:
                                                                   self.rtmpSessionState = VCSessionStateEnded;
-                                                                  [self endRtmpSession];
                                                                   break;
                                                               default:
                                                                   break;
@@ -642,15 +640,19 @@ namespace videocore { namespace simpleApi {
 
                                                       if(videoBr > 1152000) {
                                                           video->setBitrate(std::min(int((videoBr / 384000 + vector )) * 384000, bSelf->_bpsCeiling) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityHigh];
                                                       }
                                                       else if( videoBr > 512000 ) {
                                                           video->setBitrate(std::min(int((videoBr / 128000 + vector )) * 128000, bSelf->_bpsCeiling) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityMedium];
                                                       }
                                                       else if( videoBr > 128000 ) {
                                                           video->setBitrate(std::min(int((videoBr / 64000 + vector )) * 64000, bSelf->_bpsCeiling) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityLow];
                                                       }
                                                       else {
                                                           video->setBitrate(std::max(std::min(int((videoBr / 32000 + vector )) * 32000, bSelf->_bpsCeiling), kMinVideoBitrate) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityLow];
                                                       }
                                                       DLog("\n(%f) AudioBR: %d VideoBR: %d (%f)\n", vector, audio->bitrate(), video->bitrate(), predicted);
                                                       
