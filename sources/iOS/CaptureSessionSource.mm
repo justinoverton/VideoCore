@@ -97,11 +97,15 @@ namespace videocore { namespace iOS {
     }
     
     VCWriter *CaptureSessionSource::writer() {
-        return m_writer;
+        @synchronized(m_writer) {
+            return [[m_writer retain] autorelease];
+        }
     }
 
     void CaptureSessionSource::setWriter(VCWriter *writer) {
-        setValueForField(&m_writer, writer);
+        @synchronized(m_writer) {
+            setValueForField(&m_writer, writer);
+        }
     }
     
     id CaptureSessionSource::captureInput() {

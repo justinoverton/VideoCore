@@ -42,6 +42,7 @@ typedef NS_ENUM(NSInteger, VCSessionState)
     VCSessionStatePreviewStarted,
     VCSessionStateStarting,
     VCSessionStateStarted,
+    VCSessionStatePaused,
     VCSessionStateEnded,
     VCSessionStateError
 
@@ -69,10 +70,17 @@ typedef NS_ENUM(NSInteger, VCFilter) {
     VCFilterGlow
 };
 
+typedef NS_ENUM(NSInteger, VCConnectionQuality) {
+    kVCConnectionQualityHigh,
+    kVCConnectionQualityMedium,
+    kVCConnectionQualityLow
+};
+
 @protocol VCSessionDelegate <NSObject>
 @required
 - (void) connectionStatusChanged: (VCSessionState) sessionState;
 @optional
+- (void) didChangeConnectionQuality:(VCConnectionQuality)connectionQuality;
 - (void) didAddCameraSource:(VCSimpleSession*)session;
 
 - (void) detectedThroughput: (NSInteger) throughputInBytesPerSecond; //Depreciated, should use method below
@@ -145,6 +153,11 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 - (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
                     andStreamKey:(NSString *)streamKey
                         filePath:(NSString *)path;
+
+- (void) pauseRtmpSession;
+
+- (void) continueRtmpSessionWithURL:(NSString *)rtmpUrl
+                       andStreamKey:(NSString *)streamKey;
 
 - (void) endRtmpSession;
 - (void) endRtmpSessionWithCompletionHandler:(void(^)(void))handler;

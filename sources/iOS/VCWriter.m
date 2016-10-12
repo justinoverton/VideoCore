@@ -42,6 +42,15 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
 @property (nonatomic, assign)   CMTime              videoStartTime;
 @property (nonatomic, assign)   CMTime              audioStartTime;
 
+// variable for keeping time stamp of next buffer after unpaused
+@property (nonatomic, assign)   CMTime              videoNextTime;
+
+@property (nonatomic, assign)   CMTime              audioLastTime;
+@property (nonatomic, assign)   CMTime              audioLastDuration;
+
+@property (atomic, assign, getter=isAudioContinued)    BOOL    audioContinued;
+@property (atomic, assign, getter=isVideoContinued)    BOOL    videoContinued;
+
 - (void)encodeAndReleaseSampleBuffer:(CMSampleBufferRef)sampleBuffer withWriterInput:(AVAssetWriterInput *)input;
 
 - (void)dispatchBlock:(void(^)(void))block;
@@ -52,6 +61,7 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
 - (void)setValue:(AVAssetWriterInput *)value inInputField:(AVAssetWriterInput **)input;
 
 - (void)deletePreviousFile;
+- (NSString *)timeString:(CMTime)time;
 
 - (CMSampleBufferRef)copySampleBuffer:(CMSampleBufferRef)sampleBuffer withStartTime:(CMTime)startTime;
 
@@ -128,6 +138,15 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     return nil != self.assetWriter;
 }
 
+- (void)setPaused:(BOOL)paused {
+    if (!paused && _paused != paused) {
+        self.audioContinued = YES;
+        self.videoContinued = YES;
+    }
+    
+    _paused = paused;
+}
+
 - (void)setAssetWriter:(AVAssetWriter *)assetWriter {
     if (assetWriter != _assetWriter) {
         [_assetWriter cancelWriting];
@@ -155,6 +174,11 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     [self dispatchBlock:^{
         self.videoStartTime = kCMTimeInvalid;
         self.audioStartTime = kCMTimeInvalid;
+        
+        self.videoNextTime = kCMTimeInvalid;
+        self.audioLastTime = kCMTimeInvalid;
+        
+        self.audioLastDuration = kCMTimeInvalid;
         
         [self deletePreviousFile];
         
@@ -206,14 +230,37 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     }
     
     CMTime startTime = self.videoStartTime;
+    CMTime timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+
     if (CMTIME_IS_INVALID(self.videoStartTime)) {
-        startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+        startTime = timestamp;
         self.videoStartTime = startTime;
+    }
+    
+    // if state is paused we catch time stamp of the next buffer
+    // this buffer would not be appended
+    if ([self isPaused] && CMTIME_IS_INVALID(self.videoNextTime)) {
+        self.videoNextTime = timestamp;
+    }
+    
+    // in case of state is continued we accumulate new value of start time
+    // it consists of all time durations when video is not streamed
+    // f.e. states VCSessionStatePreviewStarted and VCSessionStatePaused
+    // value of next video buffer is invalidated to be re-catch on next pause state
+    if ([self isVideoContinued]) {
+        self.videoStartTime = CMTimeAdd(
+                                        self.videoStartTime,
+                                        CMTimeSubtract(timestamp, self.videoNextTime)
+                                        );
+        
+        self.videoNextTime = kCMTimeInvalid;
+        self.videoContinued = NO;
+        startTime = self.videoStartTime;
     }
     
     CMSampleBufferRef copiedBuffer = [self copySampleBuffer:sampleBuffer withStartTime:startTime];
     
-    [self encodeAndReleaseSampleBuffer:copiedBuffer withWriterInput:self.videoInput];
+    [self encodeAndReleaseSampleBuffer:copiedBuffer withWriterInput:self.videoInput video:YES];
 }
 
 - (void)encodeAudioBuffer:(CMSampleBufferRef)sampleBuffer {
@@ -222,29 +269,66 @@ static NSString * const kVCWriterDispatchQueue  = @"kVCWriterDispatchQueue";
     }
     
     CMTime startTime = self.audioStartTime;
+    CMTime timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    
     if (CMTIME_IS_INVALID(self.audioStartTime)) {
-        startTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+        startTime = timestamp;
         self.audioStartTime = startTime;
+    }
+    
+    // in case of state is continued we accumulate new value of start time
+    // it consists of all time durations when audio is not streamed
+    if ([self isAudioContinued]) {
+        self.audioStartTime = CMTimeAdd(
+                                        CMTimeSubtract(self.audioStartTime, self.audioLastDuration),
+                                        CMTimeSubtract(timestamp, self.audioLastTime)
+                                        );
+        self.audioContinued = NO;
+        startTime = self.audioStartTime;
+    }
+    
+    // before pause state we catch last appended audio buffer's time stamp and its duration
+    if (![self isPaused]) {
+        self.audioLastTime = timestamp;
+        self.audioLastDuration = CMSampleBufferGetDuration(sampleBuffer);
     }
     
     CMSampleBufferRef copiedBuffer = [self copySampleBuffer:sampleBuffer withStartTime:startTime];
     
-    [self encodeAndReleaseSampleBuffer:copiedBuffer withWriterInput:self.audioInput];
+    [self encodeAndReleaseSampleBuffer:copiedBuffer withWriterInput:self.audioInput video:NO];
 }
 
 #pragma mark -
 #pragma mark Private
 
-- (void)encodeAndReleaseSampleBuffer:(CMSampleBufferRef)sampleBuffer withWriterInput:(AVAssetWriterInput *)input {
-    AVAssetWriter *assetWriter = self.assetWriter;
+// for testing purposes to convert CMTime into h/m/s/ms
+- (NSString *)timeString:(CMTime)time {
+    NSUInteger dTotalSeconds = CMTimeGetSeconds(time);
     
-    [self dispatchBlock:^{
-        if (CMSampleBufferDataIsReady(sampleBuffer) && input.readyForMoreMediaData) {
-            [input appendSampleBuffer:sampleBuffer];
-        }
-        
-        CFRelease(sampleBuffer);
-    }];
+    NSUInteger dHours = floor(dTotalSeconds / 3600);
+    NSUInteger dMinutes = floor(dTotalSeconds % 3600 / 60);
+    NSUInteger dSeconds = floor(dTotalSeconds % 3600 % 60);
+    NSUInteger dMiliseconds = (CMTimeGetSeconds(time) - dHours * 3600 - dMinutes * 60 - dSeconds) * 1000;
+    
+    return [NSString stringWithFormat:@"%i:%02i:%02i:%i", dHours, dMinutes, dSeconds, dMiliseconds];
+}
+
+// during VCSessionStatePaused buffers are not appended, simply released
+- (void)encodeAndReleaseSampleBuffer:(CMSampleBufferRef)sampleBuffer withWriterInput:(AVAssetWriterInput *)input video:(BOOL)video {
+        [self dispatchBlock:^{
+            if (![self isPaused]) {
+                if (CMSampleBufferDataIsReady(sampleBuffer) && input.readyForMoreMediaData) {
+                    CMTime timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+                    NSString *timestampString = [self timeString:timestamp];
+                    
+                    [input appendSampleBuffer:sampleBuffer];
+                }
+                
+                CFRelease(sampleBuffer);
+            } else {
+                CFRelease(sampleBuffer);
+            }
+        }];
 }
 
 - (void)dispatchBlock:(void(^)(void))block {

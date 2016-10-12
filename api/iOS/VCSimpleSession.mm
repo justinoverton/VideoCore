@@ -551,6 +551,7 @@ namespace videocore { namespace simpleApi {
     self.filePath = path;
     dispatch_async(_graphManagementQueue, ^{
         [bSelf startSessionInternal:rtmpUrl streamKey:streamKey];
+        [bSelf setupWriter];
     });
 }
 
@@ -566,15 +567,13 @@ namespace videocore { namespace simpleApi {
                                                           ClientState_t state) {
                                                           
                                                           DLog("ClientState: %d\n", state);
-
+                                                          
                                                           switch(state) {
-
                                                               case kClientStateConnected:
                                                                   self.rtmpSessionState = VCSessionStateStarting;
                                                                   break;
                                                               case kClientStateSessionStarted:
                                                               {
-
                                                                   __block VCSimpleSession* bSelf = self;
                                                                   dispatch_async(_graphManagementQueue, ^{
                                                                       [bSelf addEncodersAndPacketizers];
@@ -585,11 +584,9 @@ namespace videocore { namespace simpleApi {
                                                                   break;
                                                               case kClientStateError:
                                                                   self.rtmpSessionState = VCSessionStateError;
-                                                                  [self endRtmpSession];
                                                                   break;
                                                               case kClientStateNotConnected:
                                                                   self.rtmpSessionState = VCSessionStateEnded;
-                                                                  [self endRtmpSession];
                                                                   break;
                                                               default:
                                                                   break;
@@ -643,15 +640,19 @@ namespace videocore { namespace simpleApi {
 
                                                       if(videoBr > 1152000) {
                                                           video->setBitrate(std::min(int((videoBr / 384000 + vector )) * 384000, bSelf->_bpsCeiling) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityHigh];
                                                       }
                                                       else if( videoBr > 512000 ) {
                                                           video->setBitrate(std::min(int((videoBr / 128000 + vector )) * 128000, bSelf->_bpsCeiling) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityMedium];
                                                       }
                                                       else if( videoBr > 128000 ) {
                                                           video->setBitrate(std::min(int((videoBr / 64000 + vector )) * 64000, bSelf->_bpsCeiling) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityLow];
                                                       }
                                                       else {
                                                           video->setBitrate(std::max(std::min(int((videoBr / 32000 + vector )) * 32000, bSelf->_bpsCeiling), kMinVideoBitrate) );
+                                                          [self.delegate didChangeConnectionQuality:kVCConnectionQualityLow];
                                                       }
                                                       DLog("\n(%f) AudioBR: %d VideoBR: %d (%f)\n", vector, audio->bitrate(), video->bitrate(), predicted);
                                                       
@@ -679,9 +680,32 @@ namespace videocore { namespace simpleApi {
                (self.audioChannelCount == 2));
 
     m_outputSession->setSessionParameters(sp);
-    
-    [self setupWriter];
 }
+
+- (void) pauseRtmpSession {
+    dispatch_async(_graphManagementQueue, ^{
+        m_h264Packetizer.reset();
+        m_aacPacketizer.reset();
+        m_videoSplit->removeOutput(m_h264Encoder);
+        m_h264Encoder.reset();
+        m_aacEncoder.reset();
+
+        m_outputSession.reset();
+    });
+    
+    _bitrate = _bpsCeiling;
+    
+    self.writer.paused = YES;
+    self.rtmpSessionState = VCSessionStatePaused;
+}
+
+- (void) continueRtmpSessionWithURL:(NSString *)rtmpUrl
+                       andStreamKey:(NSString *)streamKey
+{
+    [self startRtmpSessionWithURL:rtmpUrl andStreamKey:streamKey];
+    self.writer.paused = NO;
+}
+
 - (void) endRtmpSession {
     [self endRtmpSessionWithCompletionHandler:nil];
 }
@@ -695,13 +719,15 @@ namespace videocore { namespace simpleApi {
         }
     }];
     
-    m_h264Packetizer.reset();
-    m_aacPacketizer.reset();
-    m_videoSplit->removeOutput(m_h264Encoder);
-    m_h264Encoder.reset();
-    m_aacEncoder.reset();
-    
-    m_outputSession.reset();
+    dispatch_async(_graphManagementQueue, ^{
+        m_h264Packetizer.reset();
+        m_aacPacketizer.reset();
+        m_videoSplit->removeOutput(m_h264Encoder);
+        m_h264Encoder.reset();
+        m_aacEncoder.reset();
+        
+        m_outputSession.reset();
+    });
     
     _bitrate = _bpsCeiling;
     
@@ -748,6 +774,10 @@ namespace videocore { namespace simpleApi {
 
 
 - (void) setupWriter {
+    if (nil == self.filePath) {
+        return;
+    }
+    
     id compressionSettings = @{
                                AVVideoAverageBitRateKey: @(self.bitrate),
                                AVVideoMaxKeyFrameIntervalKey: @(2 * self.fps),

@@ -32,7 +32,8 @@
 @property (nonatomic, copy, readonly)     NSDictionary *videoSettings;
 @property (nonatomic, copy, readonly)     NSDictionary *audioSettings;
 
-@property (nonatomic, readonly, getter=isWriting)    BOOL    writing;
+@property (nonatomic, readonly, getter=isWriting)   BOOL    writing;
+@property (atomic, assign, getter=isPaused)         BOOL    paused;
 
 + (instancetype)writerWithFilePath:(NSString *)filePath
                      videoSettings:(NSDictionary *)videoSettings
@@ -47,6 +48,10 @@
 - (void)finishWritingWithCompletionHandler:(void(^)(void))handler;
 
 - (void)cancelWriting;
+
+- (void)pauseWriting;
+
+- (void)continueWriting;
 
 - (void)encodeVideoBuffer:(CMSampleBufferRef)sampleBuffer;
 

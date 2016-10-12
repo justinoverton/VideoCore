@@ -35,5 +35,6 @@
 - (IBAction)btnConnectTouch:(id)sender;
 - (IBAction)btnFilterTouch:(id)sender;
 - (IBAction)flipCamera:(id)sender;
+- (IBAction)onPause:(id)sender;
 
 @end
