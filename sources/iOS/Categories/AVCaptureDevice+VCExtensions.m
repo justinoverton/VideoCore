@@ -22,19 +22,23 @@
  THE SOFTWARE.
  
  */
-#import <UIKit/UIKit.h>
-#import <GLKit/GLKit.h>
 
+#import <videocore/sources/iOS/Categories/AVCaptureDevice+VCExtensions.h>
 
-@interface ViewController : UIViewController
+@implementation AVCaptureDevice (VCExtensions)
 
-
-@property (retain, nonatomic) IBOutlet UIView *previewView;
-@property (retain, nonatomic) IBOutlet UIButton *btnConnect;
-
-- (IBAction)btnConnectTouch:(id)sender;
-- (IBAction)btnFilterTouch:(id)sender;
-- (IBAction)flipCamera:(id)sender;
-- (IBAction)onPause:(id)sender;
+- (BOOL)configureWithBlock:(AVCaptureDeviceConfigurationBlock)block {
+    if (!block) {
+        return YES;
+    }
+    
+    BOOL result = [self lockForConfiguration:NULL];
+    if (result) {
+        block(self);
+        [self unlockForConfiguration];
+    }
+    
+    return result;
+}
 
 @end

@@ -22,19 +22,14 @@
  THE SOFTWARE.
  
  */
-#import <UIKit/UIKit.h>
-#import <GLKit/GLKit.h>
 
+#import <AVFoundation/AVFoundation.h>
 
-@interface ViewController : UIViewController
+typedef void(^AVCaptureDeviceConfigurationBlock)(AVCaptureDevice *device);
 
+@interface AVCaptureDevice (VCExtensions)
 
-@property (retain, nonatomic) IBOutlet UIView *previewView;
-@property (retain, nonatomic) IBOutlet UIButton *btnConnect;
-
-- (IBAction)btnConnectTouch:(id)sender;
-- (IBAction)btnFilterTouch:(id)sender;
-- (IBAction)flipCamera:(id)sender;
-- (IBAction)onPause:(id)sender;
+- (BOOL)configureWithBlock:(AVCaptureDeviceConfigurationBlock)block;
 
 @end
+

@@ -26,6 +26,8 @@
 #import "ViewController.h"
 #import "VCSimpleSession.h"
 
+static NSString * const kRTMPSessionURL = @"rtmp://192.168.0.154:1935/videocore";
+
 @interface ViewController () <VCSessionDelegate> {
 
 }
@@ -44,7 +46,7 @@
     [[NSUserDefaults standardUserDefaults] setValue:@"name_preference" forKey:@"test"];
 
 
-    _session = [[VCSimpleSession alloc] initWithVideoSize:rect.size frameRate:30 bitrate:1000000 useInterfaceOrientation:YES];
+    _session = [[VCSimpleSession alloc] initWithVideoSize:CGSizeMake(720, 1280) frameRate:30 bitrate:2200000 useInterfaceOrientation:YES];
 //    _session.orientationLocked = YES;
     [self.previewView addSubview:_session.previewView];
     _session.previewView.frame = self.previewView.bounds;
@@ -66,20 +68,48 @@
     [super dealloc];
 }
 
+- (IBAction)onPause:(id)sender {
+    [_session pauseRtmpSession];
+}
+
+- (IBAction)flipCamera:(id)sender {
+    VCCameraState cameraState = _session.cameraState;
+    _session.cameraState = (VCCameraState)((cameraState + 1) % (VCCameraStateBack + 1));
+}
+
 - (IBAction)btnConnectTouch:(id)sender {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *path = [paths.firstObject stringByAppendingPathComponent:@"video3.mp4"];
+    
     switch(_session.rtmpSessionState) {
         case VCSessionStateNone:
         case VCSessionStatePreviewStarted:
         case VCSessionStateEnded:
         case VCSessionStateError:
-            [_session startRtmpSessionWithURL:@"rtmp://192.168.50.19/myapp" andStreamKey:@"iosstream?abc=xxx"];
+            [_session startRtmpSessionWithURL:kRTMPSessionURL
+                                 andStreamKey:@"stream"
+                                     filePath:path];
+            break;
+        case VCSessionStatePaused:
+            [_session continueRtmpSessionWithURL:kRTMPSessionURL
+                                    andStreamKey:@"stream"];
             break;
         default:
-            [_session endRtmpSession];
+            [_session endRtmpSessionWithCompletionHandler:^{
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [_session.previewView removeFromSuperview];
+                    [_session release];
+                    
+                    _session = [[VCSimpleSession alloc] initWithVideoSize:CGSizeMake(720, 1280) frameRate:30 bitrate:2200000 useInterfaceOrientation:YES];
+                    //    _session.orientationLocked = YES;
+                    [self.previewView addSubview:_session.previewView];
+                    _session.previewView.frame = self.previewView.bounds;
+                    _session.delegate = self;
+                });
+            }];
             break;
     }
 }
-
 
 //Switch with the availables filters
 - (IBAction)btnFilterTouch:(id)sender {
@@ -115,6 +145,9 @@
             break;
         case VCSessionStateStarted:
             [self.btnConnect setTitle:@"Disconnect" forState:UIControlStateNormal];
+            break;
+        case VCSessionStatePaused:
+            [self.btnConnect setTitle:@"Continue" forState:UIControlStateNormal];
             break;
         default:
             [self.btnConnect setTitle:@"Connect" forState:UIControlStateNormal];

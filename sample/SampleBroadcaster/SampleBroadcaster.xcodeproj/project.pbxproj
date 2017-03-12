@@ -8,7 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		1A7B35651942542400AB5FD6 /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A7B35641942542400AB5FD6 /* GLKit.framework */; };
-		1A7B35671942564600AB5FD6 /* libPods.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A7B35661942564600AB5FD6 /* libPods.a */; };
+		6060A8EC34A0227465BBFDEE /* libPods-SampleBroadcaster.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4BFF8FC34C943CA2B5683C24 /* libPods-SampleBroadcaster.a */; };
 		7265D5E0191994B80042DC3B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7265D5DF191994B80042DC3B /* Foundation.framework */; };
 		7265D5E2191994B80042DC3B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7265D5E1191994B80042DC3B /* CoreGraphics.framework */; };
 		7265D5E4191994B80042DC3B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7265D5E3191994B80042DC3B /* UIKit.framework */; };
@@ -27,8 +27,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0CD5890497128B07F34A8506 /* Pods-SampleBroadcaster.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SampleBroadcaster.debug.xcconfig"; path = "Pods/Target Support Files/Pods-SampleBroadcaster/Pods-SampleBroadcaster.debug.xcconfig"; sourceTree = "<group>"; };
 		1A7B35641942542400AB5FD6 /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
 		1A7B35661942564600AB5FD6 /* libPods.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libPods.a; path = "Pods/build/Debug-iphoneos/libPods.a"; sourceTree = "<group>"; };
+		4BFF8FC34C943CA2B5683C24 /* libPods-SampleBroadcaster.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-SampleBroadcaster.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7265D5DC191994B80042DC3B /* SampleBroadcaster.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SampleBroadcaster.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7265D5DF191994B80042DC3B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		7265D5E1191994B80042DC3B /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -50,9 +52,7 @@
 		7265D66A1919978E0042DC3B /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
 		7265D66C191997930042DC3B /* CoreVideo.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreVideo.framework; path = System/Library/Frameworks/CoreVideo.framework; sourceTree = SDKROOT; };
 		7265D66E191997970042DC3B /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
-		AC034311A4E2CCE0CCDA6C72 /* Pods.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.release.xcconfig; path = "Pods/Target Support Files/Pods/Pods.release.xcconfig"; sourceTree = "<group>"; };
-		D811EF3F24704EBFB916513B /* libPods.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libPods.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		DA5713A4139B758B1B834C67 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
+		C074F90AC15165BCBBB0FB28 /* Pods-SampleBroadcaster.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-SampleBroadcaster.release.xcconfig"; path = "Pods/Target Support Files/Pods-SampleBroadcaster/Pods-SampleBroadcaster.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,7 +61,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A7B35651942542400AB5FD6 /* GLKit.framework in Frameworks */,
-				1A7B35671942564600AB5FD6 /* libPods.a in Frameworks */,
 				7265D66F191997970042DC3B /* OpenGLES.framework in Frameworks */,
 				7265D66D191997930042DC3B /* CoreVideo.framework in Frameworks */,
 				7265D66B1919978E0042DC3B /* CoreMedia.framework in Frameworks */,
@@ -71,6 +70,7 @@
 				7265D5E2191994B80042DC3B /* CoreGraphics.framework in Frameworks */,
 				7265D5E4191994B80042DC3B /* UIKit.framework in Frameworks */,
 				7265D5E0191994B80042DC3B /* Foundation.framework in Frameworks */,
+				6060A8EC34A0227465BBFDEE /* libPods-SampleBroadcaster.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,7 +83,7 @@
 				7265D5E5191994B80042DC3B /* SampleBroadcaster */,
 				7265D5DE191994B80042DC3B /* Frameworks */,
 				7265D5DD191994B80042DC3B /* Products */,
-				7314D3F09AB131B5F8068CD5 /* Pods */,
+				FC63CDF30045FA7C01C0561D /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -110,7 +110,7 @@
 				7265D5E1191994B80042DC3B /* CoreGraphics.framework */,
 				7265D5E3191994B80042DC3B /* UIKit.framework */,
 				7265D601191994B80042DC3B /* XCTest.framework */,
-				D811EF3F24704EBFB916513B /* libPods.a */,
+				4BFF8FC34C943CA2B5683C24 /* libPods-SampleBroadcaster.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -140,11 +140,11 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		7314D3F09AB131B5F8068CD5 /* Pods */ = {
+		FC63CDF30045FA7C01C0561D /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				DA5713A4139B758B1B834C67 /* Pods.debug.xcconfig */,
-				AC034311A4E2CCE0CCDA6C72 /* Pods.release.xcconfig */,
+				0CD5890497128B07F34A8506 /* Pods-SampleBroadcaster.debug.xcconfig */,
+				C074F90AC15165BCBBB0FB28 /* Pods-SampleBroadcaster.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -156,11 +156,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 7265D611191994B80042DC3B /* Build configuration list for PBXNativeTarget "SampleBroadcaster" */;
 			buildPhases = (
-				82EBE6B776CE4DC9BB603CFD /* Check Pods Manifest.lock */,
+				A2F296F1625A7456FE2C2BEA /* [CP] Check Pods Manifest.lock */,
 				7265D5D8191994B80042DC3B /* Sources */,
 				7265D5D9191994B80042DC3B /* Frameworks */,
 				7265D5DA191994B80042DC3B /* Resources */,
-				9EB59F6A033C4DB08E180EDA /* Copy Pods Resources */,
+				887B2ACA479CF2116DC7E095 /* [CP] Embed Pods Frameworks */,
+				0A40DCDF8E635CD1D6EC3863 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -177,11 +178,12 @@
 		7265D5D4191994B80042DC3B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0700;
+				LastUpgradeCheck = 0800;
 				ORGANIZATIONNAME = videocore;
 				TargetAttributes = {
 					7265D5DB191994B80042DC3B = {
-						DevelopmentTeam = 263A46GSYZ;
+						DevelopmentTeam = K33J7AD8C7;
+						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -217,34 +219,49 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		82EBE6B776CE4DC9BB603CFD /* Check Pods Manifest.lock */ = {
+		0A40DCDF8E635CD1D6EC3863 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputPaths = (
 			);
-			name = "Check Pods Manifest.lock";
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SampleBroadcaster/Pods-SampleBroadcaster-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		887B2ACA479CF2116DC7E095 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-SampleBroadcaster/Pods-SampleBroadcaster-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A2F296F1625A7456FE2C2BEA /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
-			showEnvVarsInLog = 0;
-		};
-		9EB59F6A033C4DB08E180EDA /* Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Copy Pods Resources";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods/Pods-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -295,14 +312,20 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Maryna Butovych (MCRV7R8LYF)";
 				COPY_PHASE_STRIP = NO;
+				DEVELOPMENT_TEAM = K33J7AD8C7;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -321,7 +344,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -341,13 +364,19 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Maryna Butovych (MCRV7R8LYF)";
 				COPY_PHASE_STRIP = YES;
+				DEVELOPMENT_TEAM = K33J7AD8C7;
 				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -360,7 +389,7 @@
 					"$(inherited)",
 					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
 				);
-				IPHONEOS_DEPLOYMENT_TARGET = 7.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
@@ -369,12 +398,13 @@
 		};
 		7265D612191994B80042DC3B /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DA5713A4139B758B1B834C67 /* Pods.debug.xcconfig */;
+			baseConfigurationReference = 0CD5890497128B07F34A8506 /* Pods-SampleBroadcaster.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = "";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SampleBroadcaster/SampleBroadcaster-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -413,9 +443,10 @@
 				);
 				INFOPLIST_FILE = "SampleBroadcaster/SampleBroadcaster-Info.plist";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = "videocore.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = caom.idapgroup.videocore.SampleBroadcaster;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "802ea4ec-e810-451f-9144-bc91bd34dd7b";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};
@@ -423,12 +454,13 @@
 		};
 		7265D613191994B80042DC3B /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = AC034311A4E2CCE0CCDA6C72 /* Pods.release.xcconfig */;
+			baseConfigurationReference = C074F90AC15165BCBBB0FB28 /* Pods-SampleBroadcaster.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				DEVELOPMENT_TEAM = K33J7AD8C7;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SampleBroadcaster/SampleBroadcaster-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -467,9 +499,9 @@
 				);
 				INFOPLIST_FILE = "SampleBroadcaster/SampleBroadcaster-Info.plist";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = "videocore.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = caom.idapgroup.videocore.SampleBroadcaster;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "802ea4ec-e810-451f-9144-bc91bd34dd7b";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				TARGETED_DEVICE_FAMILY = 1;
 				WRAPPER_EXTENSION = app;
 			};

@@ -42,6 +42,7 @@ typedef NS_ENUM(NSInteger, VCSessionState)
     VCSessionStatePreviewStarted,
     VCSessionStateStarting,
     VCSessionStateStarted,
+    VCSessionStatePaused,
     VCSessionStateEnded,
     VCSessionStateError
 
@@ -69,10 +70,17 @@ typedef NS_ENUM(NSInteger, VCFilter) {
     VCFilterGlow
 };
 
+typedef NS_ENUM(NSInteger, VCConnectionQuality) {
+    kVCConnectionQualityHigh,
+    kVCConnectionQualityMedium,
+    kVCConnectionQualityLow
+};
+
 @protocol VCSessionDelegate <NSObject>
 @required
 - (void) connectionStatusChanged: (VCSessionState) sessionState;
 @optional
+- (void) didChangeConnectionQuality:(VCConnectionQuality)connectionQuality;
 - (void) didAddCameraSource:(VCSimpleSession*)session;
 
 - (void) detectedThroughput: (NSInteger) throughputInBytesPerSecond; //Depreciated, should use method below
@@ -103,6 +111,9 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 @property (nonatomic, assign) BOOL          useAdaptiveBitrate;     /* Default is off */
 @property (nonatomic, readonly) int         estimatedThroughput;    /* Bytes Per Second. */
 @property (nonatomic, assign) VCAspectMode  aspectMode;
+@property (nonatomic, copy, readonly) NSString    *filePath;
+
+@property (nonatomic, readonly) AVCaptureSession    *captureSession;
 
 @property (nonatomic, assign) VCFilter      filter; /* Default is VCFilterNormal*/
 
@@ -136,13 +147,20 @@ typedef NS_ENUM(NSInteger, VCFilter) {
 
 // -----------------------------------------------------------------------------
 
-- (void) startRtmpSessionWithURL:(NSString*) rtmpUrl
-                    andStreamKey:(NSString*) streamKey;
+- (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
+                    andStreamKey:(NSString *)streamKey;
+
+- (void) startRtmpSessionWithURL:(NSString *)rtmpUrl
+                    andStreamKey:(NSString *)streamKey
+                        filePath:(NSString *)path;
+
+- (void) pauseRtmpSession;
+
+- (void) continueRtmpSessionWithURL:(NSString *)rtmpUrl
+                       andStreamKey:(NSString *)streamKey;
 
 - (void) endRtmpSession;
-
-- (void) getCameraPreviewLayer: (AVCaptureVideoPreviewLayer**) previewLayer;
-
+- (void) endRtmpSessionWithCompletionHandler:(void(^)(void))handler;
 /*!
  *  Note that the rect you provide should be based on your video dimensions.  The origin
  *  of the image will be the center of the image (so if you put 0,0 as its position, it will

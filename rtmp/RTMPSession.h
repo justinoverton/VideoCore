@@ -87,6 +87,7 @@ namespace videocore
         
         void setSessionParameters(IMetadata& parameters);
         void setBandwidthCallback(BandwidthCallback callback);
+        void setMaxSendBufferSize(size_t size) { m_maxSendBufferSize = size; printf("MAX SEND BUFFER %lu\n", size); };
         
     private:
         
@@ -164,6 +165,7 @@ namespace videocore
         
         size_t          m_outChunkSize;
         size_t          m_inChunkSize;
+        size_t          m_maxSendBufferSize;
         int64_t         m_bufferSize;
         
         int32_t         m_streamId;

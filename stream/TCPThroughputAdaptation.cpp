@@ -11,7 +11,7 @@
  furnished to do so, subject to the following conditions:
  
  The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
+ all copies or substantial portions of the Software.
  
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -35,8 +35,8 @@ namespace videocore {
     static const float kWeight = 0.75f;
     static const int   kPivotSamples = 5;
     static const int   kMeasurementDelay = 2; // seconds - represents the time between measurements when increasing or decreasing bitrate
-    static const int   kSettlementDelay  = 30; // seconds - represents time to wait after a bitrate decrease before attempting to increase again
-    static const int   kIncreaseDelta    = 10; // seconds - number of seconds to wait between increase vectors (after initial ramp up)
+    static const int   kSettlementDelay  = 10; // seconds - represents time to wait after a bitrate decrease before attempting to increase again
+    static const int   kIncreaseDelta    = 5; // seconds - number of seconds to wait between increase vectors (after initial ramp up)
     //static const int   kNegativeSampleThreshold = 0; // number of negative samples in a row to call for a decrease
     
     template<typename T>

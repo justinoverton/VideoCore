@@ -22,19 +22,39 @@
  THE SOFTWARE.
  
  */
-#import <UIKit/UIKit.h>
-#import <GLKit/GLKit.h>
 
+#import <Foundation/Foundation.h>
 
-@interface ViewController : UIViewController
+#import <AVFoundation/AVFoundation.h>
 
+@interface VCWriter : NSObject
+@property (nonatomic, copy, readonly)     NSString     *filePath;
+@property (nonatomic, copy, readonly)     NSDictionary *videoSettings;
+@property (nonatomic, copy, readonly)     NSDictionary *audioSettings;
 
-@property (retain, nonatomic) IBOutlet UIView *previewView;
-@property (retain, nonatomic) IBOutlet UIButton *btnConnect;
+@property (nonatomic, readonly, getter=isWriting)   BOOL    writing;
+@property (atomic, assign, getter=isPaused)         BOOL    paused;
 
-- (IBAction)btnConnectTouch:(id)sender;
-- (IBAction)btnFilterTouch:(id)sender;
-- (IBAction)flipCamera:(id)sender;
-- (IBAction)onPause:(id)sender;
++ (instancetype)writerWithFilePath:(NSString *)filePath
+                     videoSettings:(NSDictionary *)videoSettings
+                     audioSettings:(NSDictionary *)audioSettings;
+
+- (instancetype)initWithFilePath:(NSString *)filePath
+                   videoSettings:(NSDictionary *)videoSettings
+                   audioSettings:(NSDictionary *)audioSettings;
+
+- (void)startWriting;
+
+- (void)finishWritingWithCompletionHandler:(void(^)(void))handler;
+
+- (void)cancelWriting;
+
+- (void)pauseWriting;
+
+- (void)continueWriting;
+
+- (void)encodeVideoBuffer:(CMSampleBufferRef)sampleBuffer;
+
+- (void)encodeAudioBuffer:(CMSampleBufferRef)sampleBuffer;
 
 @end

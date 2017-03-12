@@ -25,181 +25,164 @@
 #include "MicSource.h"
 #include <dlfcn.h>
 #include <videocore/mixers/IAudioMixer.hpp>
-#import <AVFoundation/AVFoundation.h>
-#import <UIKit/UIKit.h>
+#import <videocore/sources/iOS/Categories/AVCaptureSession+VCExtensions.h>
+#import <videocore/sources/iOS/Categories/AVCaptureDevice+VCExtensions.h>
 
-#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+@interface sbAudioCallback: NSObject<AVCaptureAudioDataOutputSampleBufferDelegate> {
+    std::weak_ptr<videocore::iOS::MicSource> m_source;
+}
 
+- (void) setSource:(std::weak_ptr<videocore::iOS::MicSource>) source;
 
-@implementation InterruptionHandler
+@end
 
-- (void) handleInterruption:(NSNotification*)notification
+@implementation sbAudioCallback
+
+- (void)setSource:(std::weak_ptr<videocore::iOS::MicSource>)source {
+    m_source = source;
+}
+
+- (void)captureOutput:(AVCaptureOutput *)captureOutput
+didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer
+       fromConnection:(AVCaptureConnection *)connection
 {
-    NSDictionary* userInfo = notification.userInfo;
-    
-    if([userInfo[AVAudioSessionInterruptionTypeKey] intValue] == AVAudioSessionInterruptionTypeBegan) {
-        _source->interruptionBegan();
-    } else {
-        _source->interruptionEnded();
+    auto source = m_source.lock();
+    if (source) {
+        source->bufferCaptured(sampleBuffer);
     }
 }
 
 @end
-        
-        
-static std::weak_ptr<videocore::iOS::MicSource> s_micSource;
 
-static OSStatus handleInputBuffer(void *inRefCon,
-                                  AudioUnitRenderActionFlags *ioActionFlags,
-                                  const AudioTimeStamp *inTimeStamp,
-                                  UInt32 inBusNumber,
-                                  UInt32 inNumberFrames,
-                                  AudioBufferList *ioData)
-{
-    videocore::iOS::MicSource* mc =static_cast<videocore::iOS::MicSource*>(inRefCon);
-
-    AudioBuffer buffer;
-    buffer.mData = NULL;
-    buffer.mDataByteSize = 0;
-    buffer.mNumberChannels = 2;
-
-    AudioBufferList buffers;
-    buffers.mNumberBuffers = 1;
-    buffers.mBuffers[0] = buffer;
-
-    OSStatus status = AudioUnitRender(mc->audioUnit(),
-                                      ioActionFlags,
-                                      inTimeStamp,
-                                      inBusNumber,
-                                      inNumberFrames,
-                                      &buffers);
-
-    if(!status) {
-        mc->inputCallback((uint8_t*)buffers.mBuffers[0].mData, buffers.mBuffers[0].mDataByteSize, inNumberFrames);
-    }
-    return status;
-}
 
 
 namespace videocore { namespace iOS {
 
-    MicSource::MicSource(double sampleRate, int channelCount, std::function<void(AudioUnit&)> excludeAudioUnit)
-    : m_sampleRate(sampleRate), m_channelCount(channelCount), m_audioUnit(nullptr), m_component(nullptr)
+    MicSource::MicSource()
+    :
+    m_sampleRate(0),
+    m_channelCount(0),
+    m_audioBufferListData(nil)
     {
-        
-
         AVAudioSession *session = [AVAudioSession sharedInstance];
-
-        __block MicSource* bThis = this;
-
-        PermissionBlock permission = ^(BOOL granted) {
-            if(granted) {
-
-                [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionMixWithOthers error:nil];
-                //[session setMode:AVAudioSessionModeVideoChat error:nil];
-                [session setActive:YES error:nil];
-                
-                AudioComponentDescription acd;
-                acd.componentType = kAudioUnitType_Output;
-                acd.componentSubType = kAudioUnitSubType_RemoteIO;
-                acd.componentManufacturer = kAudioUnitManufacturer_Apple;
-                acd.componentFlags = 0;
-                acd.componentFlagsMask = 0;
-                
-                bThis->m_component = AudioComponentFindNext(NULL, &acd);
-                
-                AudioComponentInstanceNew(bThis->m_component, &bThis->m_audioUnit);
-                if(!bThis->m_audioUnit) {
-                    DLog("AudioComponentInstanceNew failed");
-                    return ;
-                }
-                
-                if(excludeAudioUnit) {
-                    excludeAudioUnit(bThis->m_audioUnit);
-                }
-                UInt32 flagOne = 1;
-                
-                AudioUnitSetProperty(bThis->m_audioUnit, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &flagOne, sizeof(flagOne));
-                
-                AudioStreamBasicDescription desc = {0};
-                desc.mSampleRate = bThis->m_sampleRate;
-                desc.mFormatID = kAudioFormatLinearPCM;
-                desc.mFormatFlags = (kAudioFormatFlagIsSignedInteger | kAudioFormatFlagsNativeEndian | kAudioFormatFlagIsPacked);
-                desc.mChannelsPerFrame = bThis->m_channelCount;
-                desc.mFramesPerPacket = 1;
-                desc.mBitsPerChannel = 16;
-                desc.mBytesPerFrame = desc.mBitsPerChannel / 8 * desc.mChannelsPerFrame;
-                desc.mBytesPerPacket = desc.mBytesPerFrame * desc.mFramesPerPacket;
-                
-                AURenderCallbackStruct cb;
-                cb.inputProcRefCon = this;
-                cb.inputProc = handleInputBuffer;
-                AudioUnitSetProperty(bThis->m_audioUnit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &desc, sizeof(desc));
-                AudioUnitSetProperty(bThis->m_audioUnit, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 1, &cb, sizeof(cb));
-                
-                m_interruptionHandler = [[InterruptionHandler alloc] init];
-                m_interruptionHandler->_source = this;
-                
-                [[NSNotificationCenter defaultCenter] addObserver:m_interruptionHandler selector:@selector(handleInterruption:) name:AVAudioSessionInterruptionNotification object:nil];
-                
-                AudioUnitInitialize(bThis->m_audioUnit);
-                OSStatus ret = AudioOutputUnitStart(bThis->m_audioUnit);
-                if(ret != noErr) {
-                    DLog("Failed to start microphone!");
-                }
-            }
-        };
+        [session setCategory:AVAudioSessionCategoryPlayAndRecord withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionMixWithOthers error:nil];
+        [session setActive:YES error:nil];
+//        [captureSession() configureWithBlock:^(AVCaptureSession *session) {
+//            session.usesApplicationAudioSession = YES;
+//        }];
         
-        if(SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"7.0")) {
-            [session requestRecordPermission:permission];
-        } else {
-            permission(true);
-        }
-
+        setAudioBufferListData([NSMutableData dataWithLength:sizeof(AudioBufferList)]);
     }
+    
     MicSource::~MicSource() {
-        if(m_audioUnit) {
-            [[NSNotificationCenter defaultCenter] removeObserver:m_interruptionHandler];
-            [m_interruptionHandler release];
-            
-            AudioOutputUnitStop(m_audioUnit);
-            AudioComponentInstanceDispose(m_audioUnit);
-        }
-        
+        setAudioBufferListData(nil);
     }
-    void
-    MicSource::inputCallback(uint8_t *data, size_t data_size, int inNumberFrames)
-    {
+    
+    void MicSource::setup(AVCaptureSession *session, double sampleRate, int channelCount) {
+        m_sampleRate = sampleRate;
+        m_channelCount = channelCount;
+        
+        CaptureSessionSource::setup(session);
+        
+        [captureSession() startRunning];
+    }
+    
+    void MicSource::setupCaptureSessionConnections() {
+        AVCaptureDevice *device = [AVCaptureDevice defaultDeviceWithMediaType:mediaType()];
+        AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:NULL];
+        addCaptureInput(input);
+        setCaptureInput(input);
+
+        AVCaptureSession *session = captureSession();
+        AVCaptureAudioDataOutput *output = [[[AVCaptureAudioDataOutput alloc] init] autorelease];
+        [session configureWithBlock:^(AVCaptureSession *session) {
+            if ([session canAddOutput:output]) {
+                [session addOutput:output];
+            }
+        }];
+        
+        setCaptureOutput(output);
+        
+        sbAudioCallback *delegate = [[[sbAudioCallback alloc] init] autorelease];
+        setCaptureOutputDelegate(delegate);
+    }
+    
+    NSString *MicSource::mediaType() {
+        return AVMediaTypeAudio;
+    }
+    
+    void MicSource::bufferCaptured(CMSampleBufferRef sampleBuffer) {
+        [writer() encodeAudioBuffer:sampleBuffer];
         auto output = m_output.lock();
         if(output) {
             videocore::AudioBufferMetadata md (0.);
+
+            NSMutableData *data = audioBufferListData();
+            
+            size_t bufferSize = 0;
+            CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(sampleBuffer, &bufferSize, NULL, 0, NULL, NULL, 0, NULL);
+            if (bufferSize > data.length) {
+                data.length = bufferSize;
+            }
+            
+            AudioBufferList *bufferList = (AudioBufferList *)data.mutableBytes;
+            CMBlockBufferRef blockBuffer = NULL;
+            CMSampleBufferGetAudioBufferListWithRetainedBlockBuffer(
+                                                                    sampleBuffer,
+                                                                    NULL,
+                                                                    bufferList,
+                                                                    bufferSize,
+                                                                    NULL,
+                                                                    NULL,
+                                                                    kCMSampleBufferFlag_AudioBufferList_Assure16ByteAlignment,
+                                                                    &blockBuffer
+                                                                    );
+            
+            
+            AudioBuffer *buffer = bufferList->mBuffers;
+            const size_t sampleSize = 2;
+            size_t dataSize = buffer->mDataByteSize;
             
             md.setData(m_sampleRate,
                        16,
                        m_channelCount,
                        kAudioFormatFlagIsSignedInteger | kAudioFormatFlagIsPacked,
-                       m_channelCount * 2,
-                       inNumberFrames,
+                       m_channelCount * sampleSize,
+                       dataSize / (m_channelCount * sampleSize),
                        false,
                        false,
                        shared_from_this());
             
-            output->pushBuffer(data, data_size, md);
+            
+            output->pushBuffer((uint8_t *)buffer->mData, dataSize, md);
+            
+            CFRelease(blockBuffer);
         }
     }
-    void
-    MicSource::interruptionBegan() {
-        DLog("interruptionBegan");
-        AudioOutputUnitStop(m_audioUnit);
+    
+    void MicSource::setAudioBufferListData(NSMutableData *data) {
+        CaptureSessionSource::setValueForField(&m_audioBufferListData, data);
     }
-    void
-    MicSource::interruptionEnded() {
-        DLog("interruptionEnded");
-        AudioOutputUnitStart(m_audioUnit);
+    
+    NSMutableData *MicSource::audioBufferListData() {
+        return m_audioBufferListData;
     }
-    void
-    MicSource::setOutput(std::shared_ptr<IOutput> output) {
-        m_output = output;
+
+    void MicSource::setCaptureOutputDelegate(id value) {
+        if (value != m_captureOutputDelegate) {
+            [m_captureOutputDelegate setSource:std::weak_ptr<MicSource>()];
+            
+            CaptureSessionSource::setCaptureOutputDelegate(value);
+            
+            [value setSource:std::static_pointer_cast<MicSource>(shared_from_this())];
+            
+            [captureOutput() setSampleBufferDelegate:value queue:sharedDispatchQueue()];
+        }
+    }
+
+    void MicSource::setOutput(std::shared_ptr<IOutput> output) {
+        CaptureSessionSource::setOutput(output);
+        
         auto mixer = std::dynamic_pointer_cast<IAudioMixer>(output);
         mixer->registerSource(shared_from_this());
     }

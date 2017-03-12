@@ -26,10 +26,12 @@
 #define __videocore__CameraSource__
 
 #include <iostream>
-#include <videocore/sources/ISource.hpp>
+#include <videocore/sources/iOS/CaptureSessionSource.h>
 #include <videocore/transforms/IOutput.hpp>
 #include <CoreVideo/CoreVideo.h>
 #include <glm/glm.hpp>
+
+#import <Foundation/Foundation.h>
 
 
 namespace videocore { namespace iOS {
@@ -37,7 +39,7 @@ namespace videocore { namespace iOS {
     /*!
      *  Capture video from the device's cameras.
      */
-    class CameraSource : public ISource, public std::enable_shared_from_this<CameraSource>
+    class CameraSource : public CaptureSessionSource
     {
     public:
         
@@ -48,33 +50,24 @@ namespace videocore { namespace iOS {
         /*! Destructor */
         ~CameraSource();
         
-        /*! ISource::setOutput */
-        void setOutput(std::shared_ptr<IOutput> output);
         
-        /*! 
-         *  Get the AVCaptureVideoPreviewLayer associated with the camera output.
-         *
-         *  \param outAVCaputreVideoPreviewLayer a pointer to an AVCaptureVideoPreviewLayer pointer.
-         */
-        void getPreviewLayer(void** outAVCaptureVideoPreviewLayer);
-
         /*!
          *  Setup camera properties
          *
+         *  \param session  Capture session to use
          *  \param fps      Optional parameter to set the output frames per second.
          *  \param useFront Start with the front-facing camera
          *  \param useInterfaceOrientation whether to use interface or device orientation as reference for video capture orientation
-         *  \param sessionPreset name of the preset to use for the capture session
          *  \param callbackBlock block to be called after everything is set
          */
-        void setupCamera(int fps = 15, bool useFront = true, bool useInterfaceOrientation = false, NSString* sessionPreset = nil, void (^callbackBlock)(void) = nil);
-
+        void setup(AVCaptureSession *session, int fps, bool useFront, bool useInterfaceOrientation);
+        
         
         /*!
          *  Toggle the camera between front and back-facing cameras.
          */
         void toggleCamera();
-
+        
         /*!
          * If the orientation is locked, we ignore device / interface
          * orientation changes.
@@ -95,7 +88,7 @@ namespace videocore { namespace iOS {
          *  Attempt to turn the torch mode on or off.
          *
          *  \param torchOn  Bool indicating whether the torch should be on or off.
-         *  
+         *
          *  \return the actual state of the torch.
          */
         bool setTorch(bool torchOn);
@@ -114,42 +107,116 @@ namespace videocore { namespace iOS {
         
         bool setContinuousExposure(bool wantsContinuous);
         
+        /*!
+         *  Returns media type for the source
+         */
+        NSString *mediaType();
+        
         
     public:
-        /*! Used by Objective-C Capture Session */
-        void bufferCaptured(CVPixelBufferRef pixelBufferRef);
         
         /*! Used by Objective-C Device/Interface Orientation Notifications */
         void reorientCamera();
+        void bufferCaptured(CMSampleBufferRef sampleBuffer);
+        bool isConnectionForCurrentInput(AVCaptureConnection *connection);
         
-    private:
+    protected:
+        /*!
+         *  Method to create and setup capture session connections from inputs to outputs
+         */
+        void setupCaptureSessionConnections();
         
-        /*! 
+        /*!
          * Get a camera with a specified position
          *
          * \param position The position to search for.
-         * 
+         *
          * \return the camera device, if found.
          */
-        void* cameraWithPosition(int position);
+        AVCaptureDevice *cameraWithPosition(int position);
         
-    private:
+        /*!
+         * Get a camera device for currently active input.
+         */
+        AVCaptureDevice *captureDevice();
+        
+        /*!
+         *  Get video orientation for device orientation
+         *
+         *  \param orientation Device or interface orientation
+         *
+         *  \return Video orientation
+         */
+        AVCaptureVideoOrientation videoOrientationForInterfaceOrientation(long orientation);
+        
+        /*!
+         *  Sets up and adds camera capture input for position.
+         *
+         *  \param position The position of camera.
+         *
+         *  \return Capture input.
+         */
+        AVCaptureDeviceInput *setupCaptureInputWithCameraPosition(int position);
+        
+        /*!
+         *  Removes capture outputs and inputs from session
+         */
+        void removeSessionConnections();
+        
+        /*!
+         * Sets up the camera capture output.
+         */
+        void setupCaptureOutput();
+        
+        /*!
+         *  Property for capture output delegate
+         */
+        void setCaptureOutputDelegate(id value);
+        
+        /*!
+         *  Start listening to orientation change notifications
+         */
+        void startListeningToOrientationChange();
+        
+        /*!
+         *  Stop listening to orientation change notifications
+         */
+        void stopListeningToOrientationChange();
+        
+        /*!
+         *  Returns capture input for camera.
+         *
+         *  \param position The position of camera.
+         *
+         *  \return Capture input.
+         */
+        AVCaptureDeviceInput *captureInputForCameraPosition(int position);
+        
+        /*!
+         *  Gets current capture device position
+         */
+        AVCaptureDevicePosition captureDevicePosition();
+        
+        /*!
+         *  Gets frame duration based on fps
+         */
+        CMTime frameDuration();
         
         glm::mat4 m_matrix;
         struct { float x, y, w, h, vw, vh, a; } m_size, m_targetSize;
-        
-        std::weak_ptr<IOutput> m_output;
-        
-        void* m_captureSession;
-        void* m_captureDevice;
-        void* m_callbackSession;
-        void* m_previewLayer;
         
         int  m_fps;
         bool m_torchOn;
         bool m_useInterfaceOrientation;
         bool m_orientationLocked;
-
+        bool m_isFront;
+        
+        /*!
+         *  Property for input array.
+         */
+        NSArray *m_inputs;
+        NSArray *inputs();
+        void setInputs(NSArray *inputs);
     };
     
 }
